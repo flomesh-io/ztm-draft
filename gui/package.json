@@ -3,9 +3,7 @@
 	"version": "3.9.0",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
-		"build:electron": "vite build && electron-builder",
-		"preview": "vite preview",
+		"build": "vite build && electron-builder",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
 	},
 	"build": {

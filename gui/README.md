@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-### Compile and Minify for Production
+### Compile and Minify for Production APP
 
 ```sh
 npm run build
@@ -26,4 +26,9 @@ npm run build
 
 ```sh
 npm run lint
+```
+
+### About macOS "can’t be opened" Error
+```sh
+sudo xattr -rd com.apple.quarantine /Applications/ZTMesh.app
 ```
