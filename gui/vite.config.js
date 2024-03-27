@@ -29,6 +29,7 @@ export default defineConfig(() => {
 					vitePluginRequire(),
 					viteMockServe({
 						enable: true,
+						prodEnable: true,
 						supportTs: false,
 						logger: false,
 						mockPath: "./mock/"

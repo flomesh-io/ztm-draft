@@ -4,6 +4,7 @@ const path = require("path")
 // 创建窗口
 let win
 const createWindow = (width, height) => {
+	const devTools = import.meta.env.VITE_APP_DEV_TOOLS;
     win = new BrowserWindow({
 			width: 455, 
 			height: 350,
@@ -11,9 +12,9 @@ const createWindow = (width, height) => {
 			minHeight: 350,
 			// useContentSize: true,
       webPreferences:{
+				devTools: devTools == 'open',
         nodeIntegration:true,
         contextIsolation:false,
-				
       }
     });
 		
