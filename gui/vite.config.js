@@ -7,7 +7,7 @@ import vitePluginRequire from "vite-plugin-require";
 import electron from 'vite-plugin-electron';
 import electronRender from 'vite-plugin-electron-renderer';
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig((config) => {
     return {
 				server: {
 					proxy: {
@@ -29,7 +29,12 @@ export default defineConfig(() => {
 					vitePluginRequire(),
 					viteMockServe({
 						enable: true,
-						prodEnable: true,
+						localEnabled: config.command === 'serve',
+						prodEnabled: config.command !== 'serve',
+						injectCode: `
+							import { setupProdMockServer } from './mockProdServer';
+							setupProdMockServer();
+						`,
 						supportTs: false,
 						logger: false,
 						mockPath: "./mock/"

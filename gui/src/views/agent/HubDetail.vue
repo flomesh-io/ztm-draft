@@ -141,7 +141,8 @@ const commitConfig = () => {
 		.catch(err => console.log('Request Failed', err)); 
 }
 onMounted(() => {
-	search();
+	// search();
+	loading.value = false;
 });
 const home = ref({
     icon: 'pi pi-desktop'
