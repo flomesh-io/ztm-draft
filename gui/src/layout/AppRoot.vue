@@ -9,6 +9,7 @@ import XeyeSvg from "@/assets/img/white.png";
 import HoverXeyeSvg from "@/assets/img/logo.png";
 import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
+import { checkAuthorization } from "@/service/common/request";
 
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
@@ -17,6 +18,13 @@ const router = useRouter();
 const pipyProxyService = new PipyProxyService();
 const selectedGateway = ref(null);
 const gateways = ref([]);
+
+const isLogined = computed(() => {
+	return store.getters['account/user']
+});
+const user = computed(() => {
+	return store.getters['account/user'];
+});
 
 onMounted(() => {
 	pipyProxyService.getMyGateways()
@@ -37,7 +45,7 @@ const logout = () => {
         accept: () => {
 					removeAuthorization(AUTH_TYPE.BASIC);
 					store.commit('account/setUser', null);
-          router.push('/login');
+          // router.push('/login');
         },
         reject: () => {
             
@@ -46,12 +54,14 @@ const logout = () => {
 };
 const logoHover = ref(false);
 const clickCollapse = (path) => {
-	emits('collapse',false);
 	router.push(path)
 }
 const playing = ref(false);
 const play = () => {
 	playing.value = !playing.value
+}
+const goLogin = () => {
+	router.push('/login');
 }
 </script>
 
@@ -62,20 +72,26 @@ const play = () => {
 	  <div class="wave"></div>
 	  <div class="wave"></div>
 	  <div class="wave"></div>
-			<div class="infotop">
-				<div>
-					<img :class="{'spiner': playing}" class="logo pointer " @mouseleave="logoHover = false" @mouseover="logoHover = true" :src="logoHover?HoverXeyeSvg:XeyeSvg" height="60"/>
-				</div>
-				<div>
-					
-				</div>
+		<div class="userinfo" v-if="user">
+			<Avatar icon="pi pi-user" style="background-color: rgba(255, 255, 2555, 0.5);color: #fff" shape="circle" />
+			{{user?.id}}
+		</div>
+		<div class="infotop">
 			<div>
+				<img :class="{'spiner': playing}" class="logo pointer " @mouseleave="logoHover = false" @mouseover="logoHover = true" :src="logoHover?HoverXeyeSvg:XeyeSvg" height="60"/>
+			</div>
+			<div>
+				
+			</div>
+			<div class="mt-4">
+				<Button v-if="!isLogined" class="transparent-button w-20rem" @click="goLogin">Login</Button>
 				<Dropdown 
+				v-else
 				v-model="selectedGateway" 
 				:options="gateways" 
 				optionLabel="label" 
 				placeholder="Select a Hub" 
-				class="w-20rem mt-4 gateway-selector">
+				class="w-20rem transparent-selector">
 <!-- 				    <template #optiongroup="slotProps">
 				        <div class="flex align-items-center">
 										<i class="pi pi-star-fill " style="color: orange;"/>
@@ -106,19 +122,19 @@ const play = () => {
 			</div>
 	  </div>
 		<div class="footer">
-			<div class="flex-item">
-				<Button v-tooltip="'Logout'" class="pointer" severity="help" text rounded aria-label="Filter" @click="logout" >
+			<div v-if="isLogined" class="flex-item">
+				<Button  v-tooltip="'Logout'" class="pointer" severity="help" text rounded aria-label="Filter" @click="logout" >
 					<i class="pi pi-power-off " />
 				</Button>
 			</div>
 			
 			<div class="flex-item">
-				<Button v-tooltip="'Config'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/client/config')" >
+				<Button :disabled="!isLogined" v-tooltip="'Config'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/client/config')" >
 					<i class="pi pi-cog " />
 				</Button>
 			</div>
 			<div class="flex-item">
-				<Button v-tooltip="'Find Hub'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/agent/hub/list')" >
+				<Button :disabled="!isLogined" v-tooltip="'Find Hub'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/agent/hub/list')" >
 					<i class="pi pi-search " />
 				</Button>
 			</div>
@@ -149,6 +165,20 @@ const play = () => {
 <style lang="scss" scoped>
 	.logo{
 		opacity: 0.7;
+	}
+	.logo:hover{
+		opacity: 1;
+	}
+	.userinfo{
+		position: absolute;
+		top: 10px;
+		right: 15px;
+		color: rgba(255,255,255,0.7);
+		font-weight: bold;
+	}
+	.userinfo .p-avatar{
+		vertical-align: middle;
+		transform: scale(0.7);
 	}
 	.footer .pi{
 		font-size: 26px;
@@ -273,18 +303,33 @@ const play = () => {
 	    transform: rotate(360deg);
 	  }
 	}
-	.gateway-selector{
+	.transparent-selector{
 		border-width: 4px;
 		background-color: rgba(255, 255, 255, 0.2);
 		color: #fff;
 		border-color:rgba(255,255,255,0.5);
 	}
-	:deep(.gateway-selector .p-dropdown-label){
+	:deep(.transparent-selector .p-dropdown-label){
 		color: rgba(255,255,255,0.9);
 		font-weight: bold;
 	}
-	:deep(.gateway-selector .p-dropdown-label.p-placeholder){
+	:deep(.transparent-selector .p-dropdown-label.p-placeholder){
 		color: rgba(255,255,255,0.5) !important;
 		font-weight: bold;
+	}
+	.transparent-button{
+		border-color:rgba(255,255,255,0.5);
+		color: rgba(255,255,255,0.7);
+		font-weight: bold;
+		text-align: center;
+		display: inline-block;
+		background-color: rgba(255, 255, 255, 0.2);
+		border-width: 4px;
+	}
+	.transparent-button:hover{
+		
+		background-color: rgba(255, 255, 255, 0.5);
+		border-color:rgba(255,255,255,0);
+		color: rgba(255,255,255,1);
 	}
 </style>

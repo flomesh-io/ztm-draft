@@ -38,7 +38,7 @@ const login = () => {
 						store.commit('account/setRedirect', null);
 				  } 
 					store.commit('account/setCollapsed', true);
-				  router.push(isAdmin() ?'/agent':'/agent');
+				  router.push(isAdmin() ?'/root':'/root');
 				},1000);
 			} else {
 				toast.add({ severity: 'error', summary: 'Login failed.', detail: 'User or password is wrong.', group: 'login', life: 3000 });

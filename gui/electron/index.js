@@ -5,8 +5,8 @@ const path = require("path")
 let win
 const createWindow = (width, height) => {
     win = new BrowserWindow({
-			width: 408, 
-			height: 455,
+			width: 455, 
+			height: 350,
 			minWidth: 408, 
 			minHeight: 350,
 			// useContentSize: true,

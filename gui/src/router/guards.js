@@ -43,20 +43,25 @@ const loginGuard = (to, from, next, options) => {
 			height: 455
 		})
     next({ path: "/login" });
-  } else {
-		if(to.path == "/login"){
-			ipcRenderer.send('resize',{
-				width: 408,
-				height: 455
-			})
-		} else {
-			ipcRenderer.send('resize',{
-				width: 1280,
-				height: 800
-			})
-		}
+  } else if(to.path == "/login"){
+		ipcRenderer.send('resize',{
+			width: 408,
+			height: 455
+		})
     next();
-  }
+  } else if(to.path == "/root"){
+		ipcRenderer.send('resize',{
+			width: 455,
+			height: 350
+		})
+    next();
+  } else {
+		ipcRenderer.send('resize',{
+			width: 1280,
+			height: 800
+		})
+    next();
+	}
 };
 
 /**

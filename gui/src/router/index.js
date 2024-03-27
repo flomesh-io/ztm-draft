@@ -3,8 +3,8 @@ import { isAdmin } from "@/service/common/authority-utils";
 import clientOptions from '@/router/config';
 import serverOptions from '@/router/config.server';
 const loginIgnore = {
-  names: ["404", "403", "Login"],
-  paths: ["/login"],
+  names: ["404", "403", "Login", "Root"],
+  paths: ["/login","/root"],
   includes(route) {
     return this.names.includes(route.name) || this.paths.includes(route.path);
   },

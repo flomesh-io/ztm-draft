@@ -111,7 +111,7 @@ const items = ref([
                 label: 'Collapse',
                 icon: 'pi pi-window-minimize',
 								command: () => {
-									emits('collapse',true)
+									router.push('/root');
 								}
             }
         ]

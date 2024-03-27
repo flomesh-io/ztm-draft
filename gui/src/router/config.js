@@ -32,10 +32,15 @@ const options = {
 		    name: 'error',
 		    component: () => import('@/views/pages/auth/Error.vue')
 		},
+		{
+		    path: '/root',
+		    name: 'Root',
+		    component: () => import('@/layout/AppRoot.vue')
+		},
     {
         path: '/',
         component: AppLayout,
-				redirect: "/agent",
+				redirect: "/root",
         children: process.env.NODE_ENV === "development"?[
 					agent,
 					client,

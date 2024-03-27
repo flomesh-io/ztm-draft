@@ -4,7 +4,6 @@ import AppTopbar from './AppTopbar.vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppConfig from './AppConfig.vue';
-import AppSmall from './AppSmall.vue';
 import { useLayout } from '@/layout/composables/layout';
 import { ipcRenderer } from 'electron'
 import store from "@/store";
@@ -13,10 +12,6 @@ const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 
 const outsideClickListener = ref(null);
 
-const collapse = (val) => {
-	store.commit('account/setCollapsed', val);
-};
-
 watch(isSidebarActive, (newVal) => {
     if (newVal) {
         bindOutsideClickListener();
@@ -24,24 +19,7 @@ watch(isSidebarActive, (newVal) => {
         unbindOutsideClickListener();
     }
 });
-const collapsed = computed(() => {
-	return store.getters["account/collapsed"];
-});
-watch(collapsed, (newVal) => {
-	if(!!newVal){
-		ipcRenderer.send('resize',{
-			width: 455,
-			height: 350
-		})
-	} else {
-		ipcRenderer.send('resize',{
-			width: 1280,
-			height: 800
-		})
-	}
-}, { immediate: true });
-		
-		
+
 const containerClass = computed(() => {
     return {
         'layout-theme-light': layoutConfig.darkTheme.value === 'light',
@@ -84,9 +62,8 @@ const isOutsideClicked = (event) => {
 </script>
 
 <template>
-		<app-small v-if="collapsed" @collapse="collapse(false)"></app-small>
-    <div v-else class="layout-wrapper" :class="containerClass">
-        <app-topbar @collapse="collapse(true)"></app-topbar>
+    <div class="layout-wrapper" :class="containerClass">
+        <app-topbar></app-topbar>
 <!--        <div class="layout-sidebar">
             <app-sidebar></app-sidebar>
         </div> -->
