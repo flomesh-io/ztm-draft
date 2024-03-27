@@ -1,0 +1,132 @@
+{
+	"name": "sakai-vue",
+	"version": "3.9.0",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"build:electron": "vite build && electron-builder",
+		"preview": "vite preview",
+		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+	},
+	"build": {
+		"appId": "com.ztmesh.desktop",
+		"productName": "ZTMesh",
+		"asar": true,
+		"copyright": "Copyright © 2024 flomesh",
+		"directories": {
+			"output": "release/"
+		},
+		"files": [
+			"dist"
+		],
+		"mac": {
+			"artifactName": "${productName}_${version}.${ext}",
+			"target": "dmg",
+			"hardenedRuntime": true,
+			"gatekeeperAssess": true,
+			"extendInfo": {
+				"NSAppleEventsUsageDescription": "Let me use Apple Events.",
+				"NSCameraUsageDescription": "Let me use the camera.",
+				"NSScreenCaptureDescription": "Let me take screenshots."
+			}
+		},
+		"dmg": {
+			"background": "./build/background.png",
+			"iconSize": 100,
+			"contents": [
+				{
+					"x": 255,
+					"y": 85,
+					"type": "file"
+				},
+				{
+					"x": 253,
+					"y": 325,
+					"type": "link",
+					"path": "/Applications"
+				}
+			],
+			"window": {
+				"width": 500,
+				"height": 500
+			}
+		},
+		"win": {
+			"target": [
+				{
+					"target": "nsis",
+					"arch": [
+						"x64"
+					]
+				}
+			],
+			"artifactName": "${productName}_${version}.${ext}"
+		},
+		"nsis": {
+			"oneClick": false,
+			"perMachine": false,
+			"allowToChangeInstallationDirectory": true,
+			"deleteAppDataOnUninstall": false
+		},
+		
+		"linux": {
+			"desktop": {
+				"StartupNotify": "false",
+				"Encoding": "UTF-8",
+				"MimeType": "x-scheme-handler/deeplink"
+			},
+			"target": ["AppImage", "rpm", "deb"]
+		},
+		"deb": {
+			"priority": "optional",
+			"afterInstall":"installer/linux/after-install.tpl"
+		},
+		"rpm": {
+			"fpm": ["--before-install", "installer/linux/before-install.tpl"],
+			"afterInstall":"installer/linux/after-install.tpl"
+		},
+		"publish": [
+			{
+				"provider": "generic",
+				"url": "http://127.0.0.1:8080"
+			}
+		],
+		"releaseInfo": {
+			"releaseNotes": "update version"
+		}
+	},
+	"dependencies": {
+		"axios": "^0.21.1",
+		"chart.js": "3.3.2",
+		"dayjs": "^1.11.10",
+		"echarts": "5.4.3",
+		"export-to-csv": "^1.2.2",
+		"js-cookie": "^2.2.1",
+		"lodash": "^4.17.21",
+		"nprogress": "^0.2.0",
+		"primeflex": "^3.3.1",
+		"primeicons": "^6.0.1",
+		"primevue": "^3.48",
+		"vite-plugin-require": "^1.1.14",
+		"vue": "^3.2.41",
+		"vue-router": "^4.1.5",
+		"vuex": "^4.0.2"
+	},
+	"devDependencies": {
+		"@rushstack/eslint-patch": "^1.1.4",
+		"@vitejs/plugin-vue": "^4.1.0",
+		"@vue/eslint-config-prettier": "^7.0.0",
+		"electron": "^29.1.5",
+		"electron-builder": "^24.13.3",
+		"eslint": "^8.22.0",
+		"eslint-plugin-vue": "^9.3.0",
+		"mockjs": "^1.1.0",
+		"prettier": "^2.7.1",
+		"sass": "^1.55.0",
+		"vite": "^4.2.1",
+		"vite-plugin-electron": "0.8.3",
+		"vite-plugin-electron-renderer": "^0.14.5",
+		"vite-plugin-mock": "^3.0.1"
+	},
+	"main": "dist/electron/index.js"
+}
