@@ -4,7 +4,7 @@ import { removeAuthorization, AUTH_TYPE } from "@/service/common/request";
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
 import { getMenu } from './menu';
-import XeyeSvg from "@/assets/img/lg-black.png";
+import XeyeSvg from "@/assets/img/lg-black.svg";
 import HoverXeyeSvg from "@/assets/img/black.svg";
 import store from "@/store";
 import { isAdmin } from "@/service/common/authority-utils";

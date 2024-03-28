@@ -7,6 +7,7 @@ import AppSmallMenu from './AppSmallMenu.vue';
 import store from "@/store";
 import XeyeSvg from "@/assets/img/white.png";
 import HoverXeyeSvg from "@/assets/img/logo.png";
+import PipySvg from "@/assets/img/pipy-white.png";
 import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
@@ -63,6 +64,18 @@ const play = () => {
 const goLogin = () => {
 	router.push('/login');
 }
+
+const pipyRun = ref(false);
+const restartPipy = () => {
+	restart.value = true;
+	pipyRun.value = false;
+	setTimeout(()=>{
+		pipyRun.value = true;
+		restart.value = false;
+	},2000)
+}
+
+const restart = ref(false);
 </script>
 
 <template>
@@ -72,6 +85,14 @@ const goLogin = () => {
 	  <div class="wave"></div>
 	  <div class="wave"></div>
 	  <div class="wave"></div>
+		
+		<div class="pipyinfo" v-if="user">
+			<div class="pipystatus">
+				<img :src="PipySvg" height="25"/>
+				<span class="status-point" :class="{'run': pipyRun}" />
+			</div>
+			<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
+		</div>
 		<div class="userinfo" v-if="user">
 			<Avatar icon="pi pi-user" style="background-color: rgba(255, 255, 2555, 0.5);color: #fff" shape="circle" />
 			{{user?.id}}
@@ -129,8 +150,8 @@ const goLogin = () => {
 			</div>
 			
 			<div class="flex-item">
-				<Button :disabled="!isLogined" v-tooltip="'Config'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/client/config')" >
-					<i class="pi pi-cog " />
+				<Button v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="clickCollapse('/client/config')" >
+					<i class="pi pi-cog "  />
 				</Button>
 			</div>
 			<div class="flex-item">
@@ -331,5 +352,64 @@ const goLogin = () => {
 		background-color: rgba(255, 255, 255, 0.5);
 		border-color:rgba(255,255,255,0);
 		color: rgba(255,255,255,1);
+	}
+	.pipyinfo{
+		position: absolute;
+		display: flex;
+		left: 15px;
+		top: 12px;
+	}
+	.pipystatus{
+		height: 12px;
+		border-right: 1px dashed rgba(255, 255, 255, 0.5);
+		padding-right: 20px;
+		position: relative;
+		top: 5px;
+	}
+	.pipystatus>img{
+		vertical-align: middle;
+		margin-right: 10px;
+		position: relative;
+		top: -8px;
+		opacity: 0.9;
+	}
+	.pipyinfo .pi-refresh{
+		color: #fff;
+		vertical-align: middle;
+		opacity: 0.7;
+		cursor: pointer;
+		font-size: 18px;
+		margin-left: 15px;
+		height: 20px;
+		transition: all .3s;
+	}
+	.pipyinfo .pi-refresh:hover{
+		opacity: 1;
+	}
+	.status-point{
+		opacity: 0.8;
+		display: inline-block;
+		vertical-align: middle;
+		position: relative;
+		top: -7px;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background-color: #EA4739;
+		box-shadow: 0 0 2px 2px #EA4739;
+	}
+	.status-point.run{
+		opacity: 0.8;
+		background-color: #00AB5B;
+		-webkit-animation: bling 2s infinite linear;
+		animation: bling 2s infinite linear
+	}
+	@keyframes bling{
+		0% {
+			box-shadow: 0 0 2px 2px #00AB5B;
+		}
+		100% {
+			box-shadow: 0 0 4px 4px #00AB5B;
+		}
 	}
 </style>

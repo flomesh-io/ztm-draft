@@ -77,8 +77,8 @@ const setHover = (key) =>{
 																	</div>
 															</div>
 															<div class="flex flex-row align-items-center sm:align-items-end gap-3 sm:gap-2">
-																	<Button @mouseenter="setHover('hostinfo'+index)" @click="hostinfo(item)" icon="pi pi-info" rounded :label="hoverClient == ('hostinfo'+index)?'Host Info':null"></Button>
-																	<Button @mouseenter="setHover('network'+index)" @click="network(item)" icon="pi pi-globe" rounded :label="hoverClient == ('network'+index)?'Network':null"></Button>
+																	<Button severity="secondary" @mouseenter="setHover('hostinfo'+index)" @click="hostinfo(item)" icon="pi pi-info" rounded :label="hoverClient == ('hostinfo'+index)?'Host Info':null"></Button>
+																	<Button severity="secondary" @mouseenter="setHover('network'+index)" @click="network(item)" icon="pi pi-globe" rounded :label="hoverClient == ('network'+index)?'Network':null"></Button>
 																	<!-- <Button @mouseenter="setHover('testtool'+index)" @click="testtool(item)" icon="pi pi-wifi" rounded :label="hoverClient == ('testtool'+index)?'Test Tool':null"></Button> -->
 																	<Button severity="danger"  @mouseenter="setHover('remove'+index)" @click="hostinfo(item)" icon="pi pi-times" rounded :label="hoverClient == ('remove'+index)?'Remove':null"></Button>
 															</div>
