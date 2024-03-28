@@ -11,6 +11,7 @@ import PipySvg from "@/assets/img/pipy-white.png";
 import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
+import { isAdmin } from "@/service/common/authority-utils";
 
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
@@ -53,7 +54,11 @@ const logout = () => {
         }
     });
 };
+const configOpen = ref(false);
 const logoHover = ref(false);
+const config = ref({
+	port: 8080
+});
 const clickCollapse = (path) => {
 	router.push(path)
 }
@@ -63,6 +68,9 @@ const play = () => {
 }
 const goLogin = () => {
 	router.push('/login');
+}
+const goConfig = () => {
+	router.push(isAdmin()?'/server/config':'/client/config');
 }
 
 const pipyRun = ref(false);
@@ -86,7 +94,7 @@ const restart = ref(false);
 	  <div class="wave"></div>
 	  <div class="wave"></div>
 		
-		<div class="pipyinfo" v-if="user">
+		<div class="pipyinfo fixed">
 			<div class="pipystatus">
 				<img :src="PipySvg" height="25"/>
 				<span class="status-point" :class="{'run': pipyRun}" />
@@ -142,6 +150,7 @@ const restart = ref(false);
 				
 			</div>
 	  </div>
+		
 		<div class="footer">
 			<div v-if="isLogined" class="flex-item">
 				<Button  v-tooltip="'Logout'" class="pointer" severity="help" text rounded aria-label="Filter" @click="logout" >
@@ -150,7 +159,7 @@ const restart = ref(false);
 			</div>
 			
 			<div class="flex-item">
-				<Button v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="clickCollapse('/client/config')" >
+				<Button v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
 					<i class="pi pi-cog "  />
 				</Button>
 			</div>
@@ -166,6 +175,42 @@ const restart = ref(false);
 				<Button v-tooltip="'Pause'"  v-else class="pointer" severity="help" text rounded aria-label="Filter" @click="play" >
 					<i class="pi pi-stop-circle" />
 				</Button>
+			</div>
+		</div>
+		<div class="config-pannel" v-if="configOpen">
+			<div class="config-body" >
+				<Button  v-tooltip.left="'Close'" class="pointer close" severity="help" text rounded aria-label="Filter" @click="() => configOpen = false" >
+					<i class="pi pi-times " />
+				</Button>
+				<div>
+					<!-- <div class="text-500 mb-5">xxx</div> -->
+					<ul class="list-none p-0 m-0">
+						
+						<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="font-medium font-bold w-3">Pipy</div>
+							<div class="pipyinfo">
+								<div class="pipystatus">
+									<img :src="PipySvg" height="25"/>
+									<span class="status-point" :class="{'run': pipyRun}" />
+								</div>
+								<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
+							</div>
+						</li>
+						<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
+								<div class="font-medium font-bold w-3">Port</div>
+								<div class="">
+										<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" class="transparent-input" v-model="config.port" />
+								
+								</div>
+						</li>
+						<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
+								<div class="font-medium font-bold w-3">More</div>
+								<div class="">
+									<Button  class="transparent-button w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
+								</div>
+						</li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -339,13 +384,22 @@ const restart = ref(false);
 		font-weight: bold;
 	}
 	.transparent-button{
-		border-color:rgba(255,255,255,0.5);
 		color: rgba(255,255,255,0.7);
 		font-weight: bold;
 		text-align: center;
 		display: inline-block;
 		background-color: rgba(255, 255, 255, 0.2);
+		border-width: 0px;
+		min-height: 34px;
+	}
+	:deep(.transparent-input>input){
+		width: 100%;
+		font-weight: bold;
+		text-align: center;
 		border-width: 4px;
+		border-color:rgba(255,255,255,0.5);
+		color: rgba(255,255,255,0.7);
+		background-color: rgba(255, 255, 255, 0.2);
 	}
 	.transparent-button:hover{
 		
@@ -353,11 +407,13 @@ const restart = ref(false);
 		border-color:rgba(255,255,255,0);
 		color: rgba(255,255,255,1);
 	}
-	.pipyinfo{
+	.pipyinfo.fixed{
 		position: absolute;
-		display: flex;
 		left: 15px;
 		top: 12px;
+	}
+	.pipyinfo{
+		display: flex;
 	}
 	.pipystatus{
 		height: 12px;
@@ -411,5 +467,37 @@ const restart = ref(false);
 		100% {
 			box-shadow: 0 0 4px 4px #00AB5B;
 		}
+	}
+	.config-pannel{
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.config-body{
+		position: relative;
+		padding: 2rem;
+		color: rgba(255, 255, 255, 0.9);
+	}
+	.config-pannel:before {
+	  content: "";
+	  position: absolute;
+	  top: 0;
+	  left: 0;
+	  right: 0;
+	  bottom: 0;
+	  background-color: rgba(175, 151, 251, 0.5);
+	  backdrop-filter: blur(10px);
+	}
+	.config-body .close{
+		position: absolute;
+		right: 15px;
+		top: 15px;
+		color: rgba(255, 255, 255, 0.7);
+	}
+	.border-bottom-1{
+		border-color:rgba(255,255,255,0.5) !important;
+		border-bottom-style: dashed !important;
 	}
 </style>

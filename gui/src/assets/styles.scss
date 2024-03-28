@@ -389,6 +389,9 @@ pre.app-code code{
 .pointer{
 	cursor: pointer;
 }
+.flex{
+	display: flex;
+}
 .flex-item{
 	flex: 1;
 	justify-self: center;
@@ -397,4 +400,11 @@ pre.app-code code{
 	position: relative;
 	-webkit-animation: fa-spin 2s infinite linear;
 	animation: fa-spin 2s infinite linear
+}
+.p-toast-message-content{
+	border: none;
+}
+.p-toast-message{
+	opacity: 0.9;
+	border: none;
 }
