@@ -12,6 +12,7 @@ import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
+// import { exec } from "child_process";
 
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
@@ -39,6 +40,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
 });
 
+// const execCmd = (command) => {
+// 	exec(command, (error, stdout, stderr) => {
+// 		if (error) {
+// 			console.error(`执行的错误: ${error}`);
+// 			return;
+// 		}
+// 		console.log(`stdout: ${stdout}`);
+// 		console.error(`stderr: ${stderr}`);
+// 	});
+// }
 const logout = () => {
     confirm.require({
         message: 'Are you sure you want to exit?',
@@ -87,7 +98,7 @@ const restart = ref(false);
 </script>
 
 <template>
-	<div class="e-card playing">
+	<div class="e-card playing" :class="{'blur': configOpen}">
 	  <div class="image"></div>
 	  
 	  <div class="wave"></div>
@@ -107,7 +118,7 @@ const restart = ref(false);
 		</div>
 		<div class="infotop">
 			<div>
-				<img :class="{'spiner': playing}" class="logo pointer " @mouseleave="logoHover = false" @mouseover="logoHover = true" :src="logoHover?HoverXeyeSvg:XeyeSvg" height="60"/>
+				<img :class="{'spiner': playing,'bling2':!playing}" class="logo pointer " @mouseleave="logoHover = false" @mouseover="logoHover = true" :src="logoHover?HoverXeyeSvg:XeyeSvg" height="60"/>
 			</div>
 			<div>
 				
@@ -177,40 +188,40 @@ const restart = ref(false);
 				</Button>
 			</div>
 		</div>
-		<div class="config-pannel" v-if="configOpen">
-			<div class="config-body" >
-				<Button  v-tooltip.left="'Close'" class="pointer close" severity="help" text rounded aria-label="Filter" @click="() => configOpen = false" >
-					<i class="pi pi-times " />
-				</Button>
-				<div>
-					<!-- <div class="text-500 mb-5">xxx</div> -->
-					<ul class="list-none p-0 m-0">
-						
-						<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
-							<div class="font-medium font-bold w-3">Pipy</div>
-							<div class="pipyinfo">
-								<div class="pipystatus">
-									<img :src="PipySvg" height="25"/>
-									<span class="status-point" :class="{'run': pipyRun}" />
-								</div>
-								<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
+	</div>
+	<div class="config-pannel" v-if="configOpen">
+		<div class="config-body" >
+			<Button  v-tooltip.left="'Close'" class="pointer close" severity="help" text rounded aria-label="Filter" @click="() => configOpen = false" >
+				<i class="pi pi-times " />
+			</Button>
+			<div>
+				<!-- <div class="text-500 mb-5">xxx</div> -->
+				<ul class="list-none p-0 m-0">
+					
+					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+						<div class="font-medium font-bold w-3">Pipy</div>
+						<div class="pipyinfo">
+							<div class="pipystatus">
+								<img :src="PipySvg" height="25"/>
+								<span class="status-point" :class="{'run': pipyRun}" />
 							</div>
-						</li>
-						<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
-								<div class="font-medium font-bold w-3">Port</div>
-								<div class="">
-										<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" class="transparent-input" v-model="config.port" />
-								
-								</div>
-						</li>
-						<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
-								<div class="font-medium font-bold w-3">More</div>
-								<div class="">
-									<Button  class="transparent-button w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
-								</div>
-						</li>
-					</ul>
-				</div>
+							<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
+						</div>
+					</li>
+					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
+							<div class="font-medium font-bold w-3">Port</div>
+							<div class="">
+									<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" class="transparent-input" v-model="config.port" />
+							
+							</div>
+					</li>
+					<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
+							<div class="font-medium font-bold w-3">More</div>
+							<div class="">
+								<Button  class="transparent-button w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
+							</div>
+					</li>
+				</ul>
 			</div>
 		</div>
 	</div>
@@ -229,11 +240,12 @@ const restart = ref(false);
 </template>
 
 <style lang="scss" scoped>
-	.logo{
-		opacity: 0.7;
+	.log{
+		opacity: 0.8;
 	}
-	.logo:hover{
-		opacity: 1;
+	.bling2{
+		-webkit-animation: bling2 2s infinite linear;
+		animation: bling2 2s infinite linear
 	}
 	.userinfo{
 		position: absolute;
@@ -252,12 +264,6 @@ const restart = ref(false);
 		transition: .3s all;
 		margin: auto;
 	}
-	:deep(.footer .p-button){
-		width: 46px;
-		height: 46px;
-		padding: 0;
-		text-align: center;
-	}
 	.pi-cog:hover{
 	}
 	.e-card {
@@ -268,6 +274,10 @@ const restart = ref(false);
 	  height: 322px;
 	  border-radius: 0px;
 	  overflow: hidden;
+		
+	}
+	.e-card.blur{
+		filter: blur(10px);
 	}
 	.e-card .footer{
 		display: flex;
@@ -319,6 +329,7 @@ const restart = ref(false);
 	  right: 0;
 	  color: rgb(255, 255, 255);
 	  font-weight: 600;
+		
 	}
 	
 	.name {
@@ -369,11 +380,19 @@ const restart = ref(false);
 	    transform: rotate(360deg);
 	  }
 	}
+	
+	
 	.transparent-selector{
 		border-width: 4px;
 		background-color: rgba(255, 255, 255, 0.2);
 		color: #fff;
 		border-color:rgba(255,255,255,0.5);
+	}
+	:deep(.footer .p-button){
+		width: 46px;
+		height: 46px;
+		padding: 0;
+		text-align: center;
 	}
 	:deep(.transparent-selector .p-dropdown-label){
 		color: rgba(255,255,255,0.9);
@@ -466,6 +485,17 @@ const restart = ref(false);
 		}
 		100% {
 			box-shadow: 0 0 4px 4px #00AB5B;
+		}
+	}
+	@keyframes bling2 {
+		0% {
+				opacity: 0.8;
+		}
+		50% {
+				opacity: 0.3;
+		}
+		100% {
+				opacity: 0.8;
 		}
 	}
 	.config-pannel{

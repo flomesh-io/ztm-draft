@@ -158,4 +158,7 @@ body{
 	border-color: var(--primary-color);
 	background: var(--primary-color);
 }
+:deep(.p-password .p-input-icon){
+	display: none;
+}
 </style>

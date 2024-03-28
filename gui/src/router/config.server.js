@@ -40,7 +40,7 @@ const options = {
     {
         path: '/',
         component: AppLayout,
-				redirect: "/agent",
+				redirect: "/root",
         children: process.env.NODE_ENV === "development"?[
 					agent,
 					server,

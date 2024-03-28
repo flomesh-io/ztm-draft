@@ -1,13 +1,16 @@
 <script setup>
-	import {ipcRenderer} from 'electron'
-	const emit = () =>{
-	  ipcRenderer.send('message',123)
-	}
-	ipcRenderer.on('load',(_,message) => {
-	  console.log(message,123);
-		// BrowserWindow.getCurrentWindow().setSize(500, 500)
-	})
-	//<button @click="emit">发送消息</button>
+	// import { invoke } from '@tauri-apps/api/core'
+	// setTimeout(()=>{
+	// 	invoke('close_splashscreen');
+	// },1000)
+	
+	// {
+	// 	 "width": 300,
+	// 	 "height": 300,
+	// 	 "decorations": false,
+	// 	 "url": "splashscreen.html",
+	// 	 "label": "splashscreen"
+	// },
 </script>
 
 <template>

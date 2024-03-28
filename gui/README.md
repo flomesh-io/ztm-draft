@@ -1,28 +1,7 @@
-ZTMesh developing with Vue 3 + Vite in Electron.
+# Tauri + Vue 3
 
-## Customize configuration
+This template should help get you started developing with Tauri + Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## Recommended IDE Setup
 
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production APP
-
-```sh
-npm run build
-```
-
-### About macOS "can’t be opened" Error
-```sh
-sudo xattr -rd com.apple.quarantine /Applications/ZTMesh.app
-```
+- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)

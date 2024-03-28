@@ -19,7 +19,7 @@ coverage
 /release
 /cypress/videos/
 /cypress/screenshots/
-
+/src-tauri/target
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

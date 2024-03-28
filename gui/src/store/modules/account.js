@@ -3,6 +3,7 @@ export default {
   state: {
     user: undefined,
     routesConfig: null,
+		pipyRunning: false,
 		guest: false,
 		redirect: null,
 		appkey: null,
@@ -10,6 +11,9 @@ export default {
 		collapsed: true,
   },
   getters: {
+    pipyRunning: (state) => {
+      return state.pipyRunning;
+    },
     client: (state) => {
       return state.client;
     },
@@ -50,6 +54,9 @@ export default {
     },
   },
   mutations: {
+    setPipyRunning(state, pipyRunning) {
+      state.pipyRunning = pipyRunning;
+    },
     setClient(state, client) {
       state.client = client;
     },

@@ -5,7 +5,6 @@ import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppConfig from './AppConfig.vue';
 import { useLayout } from '@/layout/composables/layout';
-import { ipcRenderer } from 'electron'
 import store from "@/store";
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();

@@ -4,10 +4,8 @@ import { checkAuthorization, spread, merge } from "@/service/common/request";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 import { useToast } from "primevue/usetoast";
-import { ipcRenderer } from 'electron'
-
+import { getCurrent, LogicalSize } from '@tauri-apps/api/window';
 NProgress.configure({ showSpinner: true });
-
 
 
 /**
@@ -24,6 +22,18 @@ const progressStart = (to, from, next) => {
   next();
 };
 
+const resize = (width,height,resizable) => {
+	if(getCurrent().setSize){
+		getCurrent().setSize({
+			type:'Logical',
+			width,
+			height
+		});
+	}
+	if(getCurrent().setResizable){
+		getCurrent().setResizable(resizable);
+	}
+}
 /**
  * Login Guard
  * @param to
@@ -38,28 +48,16 @@ const loginGuard = (to, from, next, options) => {
 		const toast = useToast();
 		toast.add({ severity: 'warn', summary: 'Tips', detail: 'Login is invalid, please login again', life: 3000 });
 		$store.commit('account/setRedirect', to.path);
-		ipcRenderer.send('resize',{
-			width: 408,
-			height: 455
-		})
+		resize(408,455,false);
     next({ path: "/login" });
   } else if(to.path == "/login"){
-		ipcRenderer.send('resize',{
-			width: 408,
-			height: 455
-		})
+		resize(408,455,false);
     next();
   } else if(to.path == "/root"){
-		ipcRenderer.send('resize',{
-			width: 455,
-			height: 350
-		})
+		resize(455,350,false);
     next();
   } else {
-		ipcRenderer.send('resize',{
-			width: 1280,
-			height: 800
-		})
+		resize(1280,800,true);
     next();
 	}
 };

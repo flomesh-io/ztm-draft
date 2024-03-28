@@ -291,7 +291,6 @@
   color: var(--primary-color);
 }
 
-@layer primevue {
   .p-component, .p-component * {
     box-sizing: border-box;
   }
@@ -10568,8 +10567,6 @@
     font-feature-settings: var(--font-feature-settings, normal);
     font-size: 1rem;
   }
-}
-@layer primevue {
   .p-accordion .p-accordion-header .p-accordion-header-link {
     border-radius: 6px !important;
     flex-direction: row-reverse;
@@ -11865,4 +11862,3 @@
   .p-treeselect.p-disabled .p-treeselect-label {
     color: #64748b;
   }
-}
