@@ -96,6 +96,9 @@ const menu = ref();
 const toggle = (event) => {
     menu.value.toggle(event);
 };
+const home = () => {
+	router.push('/root');
+}
 const items = ref([
     {
 				label: "Options",
@@ -111,7 +114,7 @@ const items = ref([
                 label: 'Collapse',
                 icon: 'pi pi-window-minimize',
 								command: () => {
-									router.push('/root');
+									home();
 								}
             }
         ]
@@ -148,8 +151,8 @@ const menuClick = (e) => {
 			</template>
 			<template #end>
 					<div class="flex align-items-center ">
-						<Button size="large" class="right-icon" type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" />
-						<Menu ref="menu" id="overlay_menu" :model="items" :popup="true" @click="menuClick"/>
+						<Button size="large" class="right-icon" type="button" icon="pi pi-window-minimize" @click="home" aria-haspopup="true" aria-controls="overlay_menu" />
+						<!-- <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" @click="menuClick"/> -->
 					</div>
 					
 			</template>

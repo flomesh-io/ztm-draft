@@ -7,6 +7,7 @@ export default {
 		guest: false,
 		redirect: null,
 		appkey: null,
+		pipyVersion: '',
 		client: null,
 		collapsed: true,
   },
@@ -19,6 +20,9 @@ export default {
     },
     appkey: (state) => {
       return state.appkey;
+    },
+    pipyVersion: (state) => {
+      return state.pipyVersion;
     },
     redirect: (state) => {
       return state.redirect;
@@ -59,6 +63,9 @@ export default {
     },
     setClient(state, client) {
       state.client = client;
+    },
+    setPipyVersion(state, pipyVersion) {
+      state.pipyVersion = pipyVersion;
     },
     setRedirect(state, redirect) {
       state.redirect = redirect;

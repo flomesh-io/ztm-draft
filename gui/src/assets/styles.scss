@@ -436,7 +436,7 @@ pre.app-code code{
 	border-width: 0px;
 	min-height: 34px;
 }
-.transparent-form .p-input>input{
+.transparent-form input.p-inputtext{
 	width: 100%;
 	font-weight: bold;
 	text-align: center;
@@ -450,4 +450,41 @@ pre.app-code code{
 	background-color: rgba(255, 255, 255, 0.5);
 	border-color:rgba(255,255,255,0);
 	color: rgba(255,255,255,1);
+}
+
+.status-point{
+	opacity: 0.8;
+	display: inline-block;
+	vertical-align: middle;
+	position: relative;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: #EA4739;
+	box-shadow: 0 0 2px 2px #EA4739;
+}
+.status-point.run{
+	opacity: 0.8;
+	background-color: #00AB5B;
+	-webkit-animation: bling 2s infinite linear;
+	animation: bling 2s infinite linear
+}
+@keyframes bling{
+	0% {
+		box-shadow: 0 0 2px 2px #00AB5B;
+	}
+	100% {
+		box-shadow: 0 0 4px 4px #00AB5B;
+	}
+}
+@keyframes bling2 {
+	0% {
+			opacity: 0.8;
+	}
+	50% {
+			opacity: 0.3;
+	}
+	100% {
+			opacity: 0.8;
+	}
 }

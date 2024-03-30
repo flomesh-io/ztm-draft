@@ -1,10 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import store from "@/store";
 import { removeAuthorization, AUTH_TYPE } from "@/service/common/request";
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
-import AppSmallMenu from './AppSmallMenu.vue';
-import store from "@/store";
+import PipyVersion from './PipyVersion.vue';
 import XeyeSvg from "@/assets/img/white.png";
 import HoverXeyeSvg from "@/assets/img/logo.png";
 import PipySvg from "@/assets/img/pipy-white.png";
@@ -35,7 +35,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
 });
 const loaddata = () => {
-	console.log('[loaddata]');
 	pipyProxyService.getMyGateways()
 		.then(res => {
 			playing.value = true;
@@ -57,21 +56,12 @@ const playing = ref(false);
 const play = () => {
 	pipyPlay();
 }
-const takePipyVersion = async () => {
-	let result = await Command.create('pipy', ['-v']).execute();
-	if(result?.code == 0){
-		pipyVersion.value = result?.stdout.split("\n")[0].split(":")[1].trim();
-		pipyRun.value = true;
-	}
-	console.log(result);
-}
 
 const getPort = () => {
 	return import.meta.env.VITE_APP_API_PORT;
 }
 
 const pipyInit = async (pause) => {
-	await takePipyVersion();
 	await startPipy();
 	setTimeout(() => {
 		loaddata();
@@ -140,14 +130,6 @@ const goConfig = () => {
 	router.push(isAdmin()?'/server/config':'/client/config');
 }
 
-const restartPipy = () => {
-	restart.value = true;
-	
-	setTimeout(()=>{
-		restart.value = false;
-	},2000)
-}
-
 const restart = ref(false);
 </script>
 
@@ -158,15 +140,7 @@ const restart = ref(false);
 	  <div class="wave"></div>
 	  <div class="wave"></div>
 	  <div class="wave"></div>
-		
-		<div class="pipyinfo fixed">
-			<div class="pipystatus">
-				<img :src="PipySvg" height="25"/>
-				<span v-if="!!pipyVersion" class="label">{{pipyVersion}}</span>
-				<span v-else class="status-point" />
-			</div>
-			<!-- <i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/> -->
-		</div>
+		<PipyVersion class="left-fixed"/>
 		<div class="userinfo" v-if="user">
 			<Avatar icon="pi pi-user" style="background-color: rgba(255, 255, 2555, 0.5);color: #fff" shape="circle" />
 			{{user?.id}}
@@ -218,11 +192,11 @@ const restart = ref(false);
 	  </div>
 		
 		<div class="footer">
-			<div v-if="isLogined" class="flex-item">
+<!-- 			<div v-if="isLogined" class="flex-item">
 				<Button  v-tooltip="'Logout'" class="pointer" severity="help" text rounded aria-label="Filter" @click="logout" >
 					<i class="pi pi-power-off " />
 				</Button>
-			</div>
+			</div> -->
 			
 			<div class="flex-item">
 				<Button v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
@@ -255,14 +229,7 @@ const restart = ref(false);
 					
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
 						<div class="font-medium font-bold w-3">Version</div>
-						<div class="pipyinfo">
-							<div class="pipystatus">
-								<img :src="PipySvg" height="25"/>
-								<span v-if="!!pipyVersion" class="label">{{pipyVersion}}</span>
-								<span v-else class="status-point" />
-							</div>
-							<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
-						</div>
+						<PipyVersion />
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">Port</div>
@@ -445,87 +412,10 @@ const restart = ref(false);
 		text-align: center;
 	}
 	
-	.pipyinfo.fixed{
+	.left-fixed{
 		position: absolute;
 		left: 15px;
 		top: 12px;
-	}
-	.pipyinfo{
-		display: flex;
-	}
-	.pipystatus{
-		height: 12px;
-		border-right: 1px dashed rgba(255, 255, 255, 0.5);
-		padding-right: 20px;
-		position: relative;
-		top: 5px;
-	}
-	.pipystatus .status-point{
-		
-		position: relative;
-		top: -7px;
-	}
-	.pipystatus .label{
-		vertical-align: middle;
-		color: rgba(255, 255, 255, 0.5);
-		position: relative;
-		top: -8px;
-	}
-	.pipystatus>img{
-		vertical-align: middle;
-		margin-right: 8px;
-		position: relative;
-		top: -7px;
-		opacity: 0.9;
-	}
-	.pipyinfo .pi-refresh{
-		color: #fff;
-		vertical-align: middle;
-		opacity: 0.7;
-		cursor: pointer;
-		font-size: 18px;
-		margin-left: 15px;
-		height: 20px;
-		transition: all .3s;
-	}
-	.pipyinfo .pi-refresh:hover{
-		opacity: 1;
-	}
-	.status-point{
-		opacity: 0.8;
-		display: inline-block;
-		vertical-align: middle;
-		position: relative;
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background-color: #EA4739;
-		box-shadow: 0 0 2px 2px #EA4739;
-	}
-	.status-point.run{
-		opacity: 0.8;
-		background-color: #00AB5B;
-		-webkit-animation: bling 2s infinite linear;
-		animation: bling 2s infinite linear
-	}
-	@keyframes bling{
-		0% {
-			box-shadow: 0 0 2px 2px #00AB5B;
-		}
-		100% {
-			box-shadow: 0 0 4px 4px #00AB5B;
-		}
-	}
-	@keyframes bling2 {
-		0% {
-				opacity: 0.8;
-		}
-		50% {
-				opacity: 0.3;
-		}
-		100% {
-				opacity: 0.8;
-		}
 	}
 	.config-pannel{
 		position: absolute;
