@@ -1,59 +1,54 @@
-import { request, METHOD } from "@/service/common/request";
-import { isServer } from "@/service/common/authority-utils";
+import { request } from './common/request';
 const isDev = process.env.NODE_ENV === "development";
 export default class PipyProxyService {
 	login(user, password) {
-		const loginPath = isDev ? (isServer() ? '/server/api/login' : '/client/api/login'):'/api/login';
-		return request(loginPath, METHOD.POST, {
+		return request('/api/login', "POST", {
 			user, password
 		});
 	}
-	beforePath(id){
-		return isDev?(id?`/server/${id}`:'/client'):(id?`/${id}`:'');
-	}
 	clients() {
-		return request(isDev?'/server/users':'/users', METHOD.GET);
+		return request('/users');
 	}
 	query({id, sql}) {
-		return request(this.beforePath(id)+'/api', METHOD.POST, sql);
+		return request('/api',"POST",sql);
 	}
 	os({id, sql}) {
-		return request(this.beforePath(id)+'/os', METHOD.POST, sql);
+		return request('/os',"POST",sql);
 	}
 	info({id}) {
-		return request(this.beforePath(id)+'/api/info', METHOD.GET);
+		return request('/api/info');
 	}
 	getCa({id}) {
-		return request(this.beforePath(id)+'/api/get-ca', METHOD.GET);
+		return request('/api/get-ca');
 	}
 	getMyGateways() {
 		//http://localhost:1420/api/meshes
-		return request('/client/api/meshes', METHOD.GET);
+		return request('http://127.0.0.1:6666/api/meshes');
 	}
 	downloadCa({id}) {
 		return this.beforePath(id)+'/api/download-ca';
 	}
 	renewCa({id, organization, commonName}) {
-		return request(this.beforePath(id)+'/api/renew-ca', METHOD.POST, {
+		return request('/api/renew-ca',"POST",{
 			organization, commonName
 		});
 	}
 	getConfig({id}) {
-		return request(this.beforePath(id)+'/api/get-config', METHOD.GET);
+		return request('/api/get-config');
 	}
 	saveConfig({id, config}) {
-		return request(this.beforePath(id)+'/api/save-config', METHOD.POST, config);
+		return request('/api/save-config',"POST",config);
 	}
 	getBackend() {
-		return request(isDev?'/server/get-backend-config':'/get-backend-config', METHOD.GET);
+		return request('/get-backend-config');
 	}
 	saveBackend(config) {
-		return request(isDev?'/server/set-backend-config':'/set-backend-config', METHOD.POST, config);
+		return request('/set-backend-config',"POST",config);
 	}
 	invoke({
 		id,
 		config
 	}) {
-		return request(this.beforePath(id)+'/api/invoke', METHOD.POST, config);
+		return request('/api/invoke',"POST",config);
 	}
 }

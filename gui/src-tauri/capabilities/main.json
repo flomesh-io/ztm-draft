@@ -19,53 +19,61 @@
     "webview:allow-set-webview-size",
     "webview:allow-internal-toggle-devtools",
     {
-			"identifier": "shell:allow-execute",
-			"allow": [
-				{
-					"name": "sudo pipy",
-					"cmd": "sudo pipy",
-					"args": [
-						{
-							"validator": ".+"
-						}
-					],
-					"sidecar": false
-				},
-				{
-					"name": "pipy",
-					"cmd": "pipy",
-					"args": [
-						{
-							"validator": ".+"
-						}
-					],
-					"sidecar": false
-				},
-				{
-					"name": "lsof",
-					"cmd": "lsof",
-					"args": [
-						"-i",
-						{
-							"validator": ".+"
-						}
-					],
-					"sidecar": false
-				},
-				{
-					"name": "kill",
-					"cmd": "kill",
-					"args": [
-						{
-							"validator": ".+"
-						}
-					],
-					"sidecar": false
-				}
-			]
-		},
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "sudo pipy",
+          "cmd": "sudo pipy",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        },
+        {
+          "name": "pipy",
+          "cmd": "pipy",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        },
+        {
+          "name": "lsof",
+          "cmd": "lsof",
+          "args": [
+            "-i",
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        },
+        {
+          "name": "kill",
+          "cmd": "kill",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        }
+      ]
+    },
     "shell:allow-kill",
     "shell:allow-open",
-    "shell:allow-stdin-write"
+    "shell:allow-stdin-write",
+    "http:default",
+    {
+      "identifier": "http:allow-fetch",
+			"allow": ["http://127.0.0.1:*/*"]
+		},
+    "http:allow-fetch-cancel",
+    "http:allow-fetch-read-body",
+    "http:allow-fetch-send"
   ]
 }

@@ -1,11 +1,7 @@
-import axios from "axios";
+import { fetch } from '@tauri-apps/plugin-http';
 import Cookie from './cookie'
 
 const xsrfHeaderName = "Authorization";
-
-axios.defaults.timeout = 120000;
-axios.defaults.withCredentials = false;
-axios.defaults.headers.post['Content-Type'] = 'application/json'
 
 const AUTH_TYPE = {
   BEARER: "Bearer",
@@ -15,24 +11,34 @@ const AUTH_TYPE = {
 };
 
 const METHOD = {
-  GET: "get",
-  POST: "post",
-  DELETE: "delete",
-  PUT: "put",
+  GET: "GET",
+  POST: "POST",
+  DELETE: "DELETE",
+  PUT: "PUT",
 };
 
 async function request(url, method, params, config) {
   switch (method) {
     case METHOD.GET:
-      return axios.get(url, { params, ...config });
     case METHOD.POST:
-      return axios.post(url, params, config);
     case METHOD.DELETE:
-      return axios.delete(url, params, config);
     case METHOD.PUT:
-      return axios.put(url, params, config);
+			return fetch(url, {
+				method,
+				header:{
+					"Content-Type": "application/json"
+				},
+				body: !!params?JSON.stringify(params):null,
+				...config
+			}).then((res) => res.json());
     default:
-      return axios.get(url, { params, ...config });
+			return fetch(url, {
+				method: "GET",
+				header:{
+					"Content-Type": "application/json"
+				},
+				...config
+			}).then((res) => res.json());
   }
 }
 
@@ -43,11 +49,9 @@ async function mock(d) {
 }
 
 async function merge(ary) {
-  return axios.all(ary).then();
 }
 
 function spread(callback) {
-  return axios.spread(callback);
 }
 
 function setAuthorization(auth, authType = AUTH_TYPE.BASIC) {
@@ -111,41 +115,6 @@ function getHeaders(headers) {
 
 function loadInterceptors(interceptors, options) {
   const { request, response } = interceptors;
-  request.forEach((item) => {
-    let { onFulfilled, onRejected } = item;
-    if (!onFulfilled || typeof onFulfilled !== "function") {
-      onFulfilled = (config) => config;
-    }
-    if (!onRejected || typeof onRejected !== "function") {
-      onRejected = (error) => Promise.reject(error);
-    }
-    axios.interceptors.request.use(
-      (config) => {
-        if (
-          !config.headers[xsrfHeaderName] &&
-          config.url.indexOf("/login") == -1 &&
-          !!Cookie.get(xsrfHeaderName)
-        ) {
-          config.headers[xsrfHeaderName] = Cookie.get(xsrfHeaderName);
-        }
-        return onFulfilled(config, options);
-      },
-      (error) => onRejected(error, options),
-    );
-  });
-  response.forEach((item) => {
-    let { onFulfilled, onRejected } = item;
-    if (!onFulfilled || typeof onFulfilled !== "function") {
-      onFulfilled = (response) => response;
-    }
-    if (!onRejected || typeof onRejected !== "function") {
-      onRejected = (error) => Promise.reject(error);
-    }
-    axios.interceptors.response.use(
-      (response) => onFulfilled(response, options),
-      (error) => onRejected(error, options),
-    );
-  });
 }
 
 function parseUrlParams(url) {

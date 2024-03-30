@@ -37,6 +37,7 @@ onBeforeUnmount(() => {
 const loaddata = () => {
 	pipyProxyService.getMyGateways()
 		.then(res => {
+			console.log(res);
 			playing.value = true;
 			gateways.value = res?.data;
 			if(gateways.value!=null && gateways.value.length ==0){
@@ -58,7 +59,9 @@ const play = () => {
 }
 
 const getPort = () => {
-	return import.meta.env.VITE_APP_API_PORT;
+	const VITE_APP_API_PORT = localStorage.getItem("VITE_APP_API_PORT");
+	const DEFAULT_VITE_APP_API_PORT = import.meta.env.VITE_APP_API_PORT;
+	return VITE_APP_API_PORT || DEFAULT_VITE_APP_API_PORT;
 }
 
 const pipyInit = async (pause) => {
@@ -76,12 +79,13 @@ const pipyPlay = async () => {
 
 let child = null;
 const startPipy = async () => {
-	console.log('[starting pipy]');
 	if(!!child){
 		child.kill();
 		child = null;
 	}
-	const command = Command.create('pipy', ['../../agent/main.js']);
+	localStorage.setItem("VITE_APP_API_PORT", config.value.port);
+	console.log(`[starting pipy:${config.value.port}]`);
+	const command = Command.create('pipy', [`../../agent/main.js --skip-unknown-arguments --listen:${config.value.port}`]);
 	command.on('close', data => {
 	  console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
 	});
@@ -199,7 +203,7 @@ const restart = ref(false);
 			</div> -->
 			
 			<div class="flex-item">
-				<Button v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
+				<Button :disabled="!!playing" v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
 					<i class="pi pi-cog "  />
 				</Button>
 			</div>
