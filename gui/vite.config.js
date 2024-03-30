@@ -1,15 +1,12 @@
 import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { viteMockServe } from 'vite-plugin-mock';
-
+// import optimizer from 'vite-plugin-optimizer'
 import { internalIpV4 } from "internal-ip";
 const mobile = !!/android|ios/.exec(process.env.TAURI_ENV_PLATFORM);
-
 // import vitePluginRequire from "vite-plugin-require";
-// import electron from 'vite-plugin-electron';
-// import electronRender from 'vite-plugin-electron-renderer';
 // https://vitejs.dev/config/
 //target: process.env.TAURI_PLATFORM == "windows" ? "chrome105" : "safari13",
 export default defineConfig(async (config) => ({
@@ -31,23 +28,16 @@ export default defineConfig(async (config) => ({
 				},
 				proxy: {
 					'/client': {
-						target: 'http://127.0.0.1:6060/',
+						target: `http://127.0.0.1:${loadEnv(config.mode, process.cwd()).VITE_APP_API_PORT}/`,
 						changeOrigin: true,
 						rewrite: (path) => path.replace(/^\/client/, ''),
 					},
-					'/server': {
-						target: 'http://127.0.0.1:8001/',
-						changeOrigin: true,
-						rewrite: (path) => path.replace(/^\/server/, ''),
-					},
 				}
 			},
-			plugins: [vue({
-				reactivityTransform: true
-				}),
-				// vitePluginRequire(),
+			plugins: [
+				vue({reactivityTransform: true}),
 				viteMockServe({
-					enable: true,
+					enable: false,
 					localEnabled: config.command === 'serve',
 					prodEnabled: config.command !== 'serve',
 					injectCode: `
@@ -58,12 +48,6 @@ export default defineConfig(async (config) => ({
 					logger: false,
 					mockPath: "./mock/"
 				}),
-				// electron({
-				// 	main: {
-				// 		entry: './electron/index.js'
-				// 	}
-				// }),
-				// electronRender()
 			],
 			resolve: {
 					alias: {

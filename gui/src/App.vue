@@ -1,4 +1,12 @@
 <script setup>
+//pass login
+import { setAuthorization, AUTH_TYPE } from "@/service/common/request";
+import store from "@/store";
+setAuthorization({
+	token: "pass",
+	expireAt: 7
+}, AUTH_TYPE.BASIC);
+store.commit('account/setUser', {id:'Client'});
 	// import { invoke } from '@tauri-apps/api/core'
 	// setTimeout(()=>{
 	// 	invoke('close_splashscreen');

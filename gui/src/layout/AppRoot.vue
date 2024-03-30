@@ -12,7 +12,7 @@ import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
-// import { exec } from "child_process";
+import { Command } from '@tauri-apps/plugin-shell';
 
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
@@ -28,28 +28,88 @@ const isLogined = computed(() => {
 const user = computed(() => {
 	return store.getters['account/user'];
 });
-
 onMounted(() => {
-	pipyProxyService.getMyGateways()
-		.then(res => {
-			gateways.value = res?.data;
-		})
-		.catch(err => console.log('Request Failed', err)); 
+	pipyInit();
 });
 
 onBeforeUnmount(() => {
 });
+const loaddata = () => {
+	console.log('[loaddata]');
+	pipyProxyService.getMyGateways()
+		.then(res => {
+			playing.value = true;
+			gateways.value = res?.data;
+			if(gateways.value!=null && gateways.value.length ==0){
+				
+				gateways.value = [
+					{ label: 'Dalian Hub', value: 'Dalian' },
+					{ label: 'Beijing Hub', value: 'Beijing' },
+					{ label: 'Shanghai Hub', value: 'Shanghai' }
+				]
+			}
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
+const pipyRun = ref(false);
+const pipyVersion = ref('');
+const playing = ref(false);
+const play = () => {
+	pipyPlay();
+}
+const takePipyVersion = async () => {
+	let result = await Command.create('pipy', ['-v']).execute();
+	if(result?.code == 0){
+		pipyVersion.value = result?.stdout.split("\n")[0].split(":")[1].trim();
+		pipyRun.value = true;
+	}
+	console.log(result);
+}
 
-// const execCmd = (command) => {
-// 	exec(command, (error, stdout, stderr) => {
-// 		if (error) {
-// 			console.error(`执行的错误: ${error}`);
-// 			return;
-// 		}
-// 		console.log(`stdout: ${stdout}`);
-// 		console.error(`stderr: ${stderr}`);
-// 	});
-// }
+const getPort = () => {
+	return import.meta.env.VITE_APP_API_PORT;
+}
+
+const pipyInit = async (pause) => {
+	await takePipyVersion();
+	await startPipy();
+	setTimeout(() => {
+		loaddata();
+	},300)
+}
+const pipyPlay = async () => {
+	await startPipy();
+	setTimeout(() => {
+		loaddata();
+	},300)
+}
+
+let child = null;
+const startPipy = async () => {
+	console.log('[starting pipy]');
+	if(!!child){
+		child.kill();
+		child = null;
+	}
+	const command = Command.create('pipy', ['../../agent/main.js']);
+	command.on('close', data => {
+	  console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
+	});
+	command.on('error', error => console.error(`command error: "${error}"`));
+	child = await command.spawn();
+}
+const pausePipy = async () => {
+	if(!!child){
+		child.kill();
+		child = null;
+	}
+	playing.value = false;
+	console.log('[paused pipy]');
+}
+const clickPause = () => {
+	pausePipy();
+}
+
 const logout = () => {
     confirm.require({
         message: 'Are you sure you want to exit?',
@@ -68,14 +128,10 @@ const logout = () => {
 const configOpen = ref(false);
 const logoHover = ref(false);
 const config = ref({
-	port: 8080
+	port: getPort()
 });
 const clickCollapse = (path) => {
 	router.push(path)
-}
-const playing = ref(false);
-const play = () => {
-	playing.value = !playing.value
 }
 const goLogin = () => {
 	router.push('/login');
@@ -84,12 +140,10 @@ const goConfig = () => {
 	router.push(isAdmin()?'/server/config':'/client/config');
 }
 
-const pipyRun = ref(false);
 const restartPipy = () => {
 	restart.value = true;
-	pipyRun.value = false;
+	
 	setTimeout(()=>{
-		pipyRun.value = true;
 		restart.value = false;
 	},2000)
 }
@@ -98,7 +152,7 @@ const restart = ref(false);
 </script>
 
 <template>
-	<div class="e-card playing" :class="{'blur': configOpen}">
+	<div class="e-card playing transparent-form" :class="{'blur': configOpen}">
 	  <div class="image"></div>
 	  
 	  <div class="wave"></div>
@@ -108,9 +162,10 @@ const restart = ref(false);
 		<div class="pipyinfo fixed">
 			<div class="pipystatus">
 				<img :src="PipySvg" height="25"/>
-				<span class="status-point" :class="{'run': pipyRun}" />
+				<span v-if="!!pipyVersion" class="label">{{pipyVersion}}</span>
+				<span v-else class="status-point" />
 			</div>
-			<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
+			<!-- <i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/> -->
 		</div>
 		<div class="userinfo" v-if="user">
 			<Avatar icon="pi pi-user" style="background-color: rgba(255, 255, 2555, 0.5);color: #fff" shape="circle" />
@@ -124,14 +179,14 @@ const restart = ref(false);
 				
 			</div>
 			<div class="mt-4">
-				<Button v-if="!isLogined" class="transparent-button w-20rem" @click="goLogin">Login</Button>
+				<Button v-if="!isLogined" class="w-20rem" @click="goLogin">Login</Button>
 				<Dropdown 
 				v-else
 				v-model="selectedGateway" 
 				:options="gateways" 
 				optionLabel="label" 
-				placeholder="Select a Hub" 
-				class="w-20rem transparent-selector">
+				placeholder="Mesh List" 
+				class="w-20rem transparent">
 <!-- 				    <template #optiongroup="slotProps">
 				        <div class="flex align-items-center">
 										<i class="pi pi-star-fill " style="color: orange;"/>
@@ -140,13 +195,13 @@ const restart = ref(false);
 				    </template> -->
 				    <template #option="slotProps">
 				        <div class="flex align-items-center">
-										<i class="pi pi-star-fill mr-2" style="color: orange;"/>
+										<span class="status-point run mr-3"/>
 				            <div>{{ slotProps.option.label }}</div>
 				        </div>
 				    </template>
 						 <template #value="slotProps">
 									<div v-if="slotProps.value" class="flex align-items-center">
-											<i class="pi pi-star-fill mr-2" style="color: orange;"/>
+											<span class="status-point run mr-3"/>
 											<div>{{ slotProps.value.label }}</div>
 									</div>
 									<span v-else>
@@ -180,16 +235,16 @@ const restart = ref(false);
 				</Button>
 			</div>
 			<div class="flex-item">
-				<Button :disabled="!selectedGateway" v-tooltip.left="'Start'" v-if="!playing" class="pointer" severity="help" text rounded aria-label="Filter" @click="play" >
+				<Button v-tooltip.left="'Start'" v-if="!playing" class="pointer" severity="help" text rounded aria-label="Filter" @click="play" >
 					<i class="pi pi-play " />
 				</Button>
-				<Button v-tooltip="'Pause'"  v-else class="pointer" severity="help" text rounded aria-label="Filter" @click="play" >
+				<Button v-tooltip="'Pause'"  v-else class="pointer" severity="help" text rounded aria-label="Filter" @click="clickPause" >
 					<i class="pi pi-stop-circle" />
 				</Button>
 			</div>
 		</div>
 	</div>
-	<div class="config-pannel" v-if="configOpen">
+	<div class="config-pannel transparent-form" v-if="configOpen">
 		<div class="config-body" >
 			<Button  v-tooltip.left="'Close'" class="pointer close" severity="help" text rounded aria-label="Filter" @click="() => configOpen = false" >
 				<i class="pi pi-times " />
@@ -199,11 +254,12 @@ const restart = ref(false);
 				<ul class="list-none p-0 m-0">
 					
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
-						<div class="font-medium font-bold w-3">Pipy</div>
+						<div class="font-medium font-bold w-3">Version</div>
 						<div class="pipyinfo">
 							<div class="pipystatus">
 								<img :src="PipySvg" height="25"/>
-								<span class="status-point" :class="{'run': pipyRun}" />
+								<span v-if="!!pipyVersion" class="label">{{pipyVersion}}</span>
+								<span v-else class="status-point" />
 							</div>
 							<i class="pi pi-refresh" :class="{'spiner': restart}" @click="restartPipy"/>
 						</div>
@@ -211,14 +267,14 @@ const restart = ref(false);
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">Port</div>
 							<div class="">
-									<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" class="transparent-input" v-model="config.port" />
+									<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" v-model="config.port" />
 							
 							</div>
 					</li>
 					<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">More</div>
 							<div class="">
-								<Button  class="transparent-button w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
+								<Button  class="w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
 							</div>
 					</li>
 				</ul>
@@ -382,50 +438,13 @@ const restart = ref(false);
 	}
 	
 	
-	.transparent-selector{
-		border-width: 4px;
-		background-color: rgba(255, 255, 255, 0.2);
-		color: #fff;
-		border-color:rgba(255,255,255,0.5);
-	}
 	:deep(.footer .p-button){
 		width: 46px;
 		height: 46px;
 		padding: 0;
 		text-align: center;
 	}
-	:deep(.transparent-selector .p-dropdown-label){
-		color: rgba(255,255,255,0.9);
-		font-weight: bold;
-	}
-	:deep(.transparent-selector .p-dropdown-label.p-placeholder){
-		color: rgba(255,255,255,0.5) !important;
-		font-weight: bold;
-	}
-	.transparent-button{
-		color: rgba(255,255,255,0.7);
-		font-weight: bold;
-		text-align: center;
-		display: inline-block;
-		background-color: rgba(255, 255, 255, 0.2);
-		border-width: 0px;
-		min-height: 34px;
-	}
-	:deep(.transparent-input>input){
-		width: 100%;
-		font-weight: bold;
-		text-align: center;
-		border-width: 4px;
-		border-color:rgba(255,255,255,0.5);
-		color: rgba(255,255,255,0.7);
-		background-color: rgba(255, 255, 255, 0.2);
-	}
-	.transparent-button:hover{
-		
-		background-color: rgba(255, 255, 255, 0.5);
-		border-color:rgba(255,255,255,0);
-		color: rgba(255,255,255,1);
-	}
+	
 	.pipyinfo.fixed{
 		position: absolute;
 		left: 15px;
@@ -441,11 +460,22 @@ const restart = ref(false);
 		position: relative;
 		top: 5px;
 	}
-	.pipystatus>img{
+	.pipystatus .status-point{
+		
+		position: relative;
+		top: -7px;
+	}
+	.pipystatus .label{
 		vertical-align: middle;
-		margin-right: 10px;
+		color: rgba(255, 255, 255, 0.5);
 		position: relative;
 		top: -8px;
+	}
+	.pipystatus>img{
+		vertical-align: middle;
+		margin-right: 8px;
+		position: relative;
+		top: -7px;
 		opacity: 0.9;
 	}
 	.pipyinfo .pi-refresh{
@@ -466,7 +496,6 @@ const restart = ref(false);
 		display: inline-block;
 		vertical-align: middle;
 		position: relative;
-		top: -7px;
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;

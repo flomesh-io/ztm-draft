@@ -35,7 +35,7 @@ export default [
 	},
 	{
 		type: "get",
-		url: "/api/mygateways",
+		url: "/api/meshes",
 		response: () => {
 			return [
 				{ label: 'Dalian Hub', value: 'Dalian' },

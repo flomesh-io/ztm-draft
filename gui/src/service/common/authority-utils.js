@@ -2,10 +2,7 @@ import _ from "lodash";
 import store from "@/store";
 
 function isServer(){
-	const devPort = import.meta.env.VITE_APP_API_PORT;
-	const serverPort = import.meta.env.VITE_APP_SERVER_PORT;
-	const serverAry = serverPort.split(",");
-	return !!serverAry.find(port => port == (devPort || location.port));
+	return false;
 }
 
 function isAdmin(){

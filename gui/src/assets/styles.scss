@@ -409,3 +409,45 @@ pre.app-code code{
 	opacity: 0.9;
 	border: none;
 }
+
+.transparent-form .p-dropdown{
+	border-width: 4px;
+	background-color: rgba(255, 255, 255, 0.2);
+	color: #fff;
+	border-color:rgba(255,255,255,0.5);
+}
+.transparent-form .p-dropdown-label{
+	color: rgba(255,255,255,0.9);
+	font-weight: bold;
+}
+.transparent-form .p-dropdown-label.p-placeholder{
+	color: rgba(255,255,255,0.5) !important;
+	font-weight: bold;
+}
+.transparent-form .p-dropdown-trigger-icon{
+	color: rgba(255,255,255,0.5);
+}
+.transparent-form .p-button{
+	color: rgba(255,255,255,0.7);
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-width: 0px;
+	min-height: 34px;
+}
+.transparent-form .p-input>input{
+	width: 100%;
+	font-weight: bold;
+	text-align: center;
+	border-width: 4px;
+	border-color:rgba(255,255,255,0.5);
+	color: rgba(255,255,255,0.7);
+	background-color: rgba(255, 255, 255, 0.2);
+}
+.transparent-form .p-button:hover{
+	
+	background-color: rgba(255, 255, 255, 0.5);
+	border-color:rgba(255,255,255,0);
+	color: rgba(255,255,255,1);
+}

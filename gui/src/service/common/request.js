@@ -105,7 +105,7 @@ function checkAuthorization(authType = AUTH_TYPE.BASIC) {
 function getHeaders(headers) {
   return {
     ...headers,
-    Authorization: Cookie.get(xsrfHeaderName),
+    // Authorization: Cookie.get(xsrfHeaderName),
   };
 }
 

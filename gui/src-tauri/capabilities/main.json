@@ -2,7 +2,9 @@
   "$schema": "./schemas/desktop-schema.json",
   "identifier": "main-capability",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "path:default",
     "event:default",
@@ -14,7 +16,56 @@
     "window:allow-set-title",
     "window:allow-set-size",
     "window:allow-set-resizable",
-		"webview:allow-set-webview-size",
-		"webview:allow-internal-toggle-devtools"
+    "webview:allow-set-webview-size",
+    "webview:allow-internal-toggle-devtools",
+    {
+			"identifier": "shell:allow-execute",
+			"allow": [
+				{
+					"name": "sudo pipy",
+					"cmd": "sudo pipy",
+					"args": [
+						{
+							"validator": ".+"
+						}
+					],
+					"sidecar": false
+				},
+				{
+					"name": "pipy",
+					"cmd": "pipy",
+					"args": [
+						{
+							"validator": ".+"
+						}
+					],
+					"sidecar": false
+				},
+				{
+					"name": "lsof",
+					"cmd": "lsof",
+					"args": [
+						"-i",
+						{
+							"validator": ".+"
+						}
+					],
+					"sidecar": false
+				},
+				{
+					"name": "kill",
+					"cmd": "kill",
+					"args": [
+						{
+							"validator": ".+"
+						}
+					],
+					"sidecar": false
+				}
+			]
+		},
+    "shell:allow-kill",
+    "shell:allow-open",
+    "shell:allow-stdin-write"
   ]
 }

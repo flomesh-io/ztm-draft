@@ -19,6 +19,7 @@ coverage
 /release
 /cypress/videos/
 /cypress/screenshots/
+/mock/*.mjs
 /src-tauri/target
 # Editor directories and files
 .vscode/*

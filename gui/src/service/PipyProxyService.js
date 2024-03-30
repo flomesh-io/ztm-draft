@@ -27,7 +27,8 @@ export default class PipyProxyService {
 		return request(this.beforePath(id)+'/api/get-ca', METHOD.GET);
 	}
 	getMyGateways() {
-		return request('/api/mygateways', METHOD.GET);
+		//http://localhost:1420/api/meshes
+		return request('/client/api/meshes', METHOD.GET);
 	}
 	downloadCa({id}) {
 		return this.beforePath(id)+'/api/download-ca';
