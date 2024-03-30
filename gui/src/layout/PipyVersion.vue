@@ -64,7 +64,7 @@ const restartPipy = () => {
 	}
 	.pipystatus .label{
 		vertical-align: middle;
-		color: rgba(255, 255, 255, 0.5);
+		color: rgba(255, 255, 255, 0.8);
 		position: relative;
 		top: -6px;
 	}

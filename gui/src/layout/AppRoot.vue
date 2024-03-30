@@ -327,13 +327,13 @@ const restart = ref(false);
 	}
 	.wave {
 	  position: absolute;
-	  width: 1200px;
-	  height: 1200px;
+	  width: 1400px;
+	  height: 1400px;
 	  opacity: 0.6;
 	  left: 0;
 	  top: 0;
-	  margin-left: -90%;
-	  margin-top: -30%;
+	  margin-left: -115%;
+	  margin-top: -20%;
 	  background: linear-gradient(744deg,#af40ff,#5b42f3 60%,#00ddeb);
 	}
 	
