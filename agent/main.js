@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pipy --skip-redundant-arguments --skip-unknown-arguments
+#!/usr/bin/env -S pipy --skip-unknown-arguments
 
 import api from './api.js'
 import db from './db.js'
@@ -8,17 +8,20 @@ var opt = options({
   defaults: {
     '--help': false,
     '--reset': false,
+    '--listen': '127.0.0.1:6666',
   },
   shorthands: {
     '-h': '--help',
     '-r': '--reset',
+    '-l': '--listen',
   },
 })
 
 if (options['--help']) {
   println('Options:')
-  println('  -h, --help   Show available options')
-  println('  -r, --reset  Delete the local database and start with a new one')
+  println('  -h, --help    Show available options')
+  println('  -r, --reset   Delete the local database and start with a new one')
+  println('  -l, --listen  Port number of the administration API (defaults to 127.0.0.1:6666)')
   return
 }
 
@@ -207,7 +210,7 @@ var routes = Object.entries(paths).map(
   }
 )
 
-pipy.listen('127.0.0.1:6666', $=>$
+pipy.listen(opt['--listen'], $=>$
   .serveHTTP(
     function (req) {
       var path = req.head.path
