@@ -8,24 +8,32 @@ var opt = options({
   defaults: {
     '--help': false,
     '--reset': false,
+    '--database': '~/ztm.db',
     '--listen': '127.0.0.1:6666',
   },
   shorthands: {
     '-h': '--help',
     '-r': '--reset',
+    '-d': '--database',
     '-l': '--listen',
   },
 })
 
 if (options['--help']) {
   println('Options:')
-  println('  -h, --help    Show available options')
-  println('  -r, --reset   Delete the local database and start with a new one')
-  println('  -l, --listen  Port number of the administration API (defaults to 127.0.0.1:6666)')
+  println('  -h, --help      Show available options')
+  println('  -r, --reset     Delete the local database and start with a new one')
+  println('  -d, --database  Pathname of the database file (default: ~/ztm.db)')
+  println('  -l, --listen    Port number of the administration API (default: 127.0.0.1:6666)')
   return
 }
 
-db.open(opt['--reset'])
+var dbPath = opt['--database']
+if (dbPath.startsWith('~/')) {
+  dbPath = os.home() + dbPath.substring(1)
+}
+
+db.open(dbPath, opt['--reset'])
 
 //
 // Data model:

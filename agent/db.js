@@ -1,12 +1,11 @@
-var DB_FILENAME = './data.db'
 var db = null
 
-function open(reset) {
+function open(pathname, reset) {
   if (reset) {
     os.rm(DB_FILENAME)
   }
 
-  db = sqlite(DB_FILENAME)
+  db = sqlite(pathname)
 
   if (db.exec(
     `SELECT * FROM sqlite_schema WHERE type = 'table' AND name = 'meshes'`
