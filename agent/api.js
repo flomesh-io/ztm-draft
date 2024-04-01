@@ -1,16 +1,47 @@
 import db from './db.js'
+import Mesh from './mesh.js'
 
 //
 // Data sources:
 //   Local storage:
-//     Meshes, Ports, Service (self)
-//   The hub:
-//     Endpoints, Services
+//     - Meshes
+//     - Services (self)
+//     - Ports
+//   Mesh:
+//     - Endpoints
+//     - Services (others)
 //
+
+var meshes = {}
+
+function init() {
+  db.allMeshes().forEach(
+    function (mesh) {
+      meshes[mesh.name] = Mesh(mesh.agent, mesh.bootstraps)
+    }
+  )
+
+  db.allServices().forEach(
+    function (svc) {
+      Object.values(meshes).forEach(
+        mesh => mesh.publishService(svc)
+      )
+    }
+  )
+}
 
 function allMeshes() {
   var all = db.allMeshes()
-  all.forEach(m => m.status = 'OK')
+  all.forEach(
+    function (obj) {
+      var mesh = meshes[obj.name]
+      if (mesh) {
+        obj.status = mesh.status()
+      } else {
+        obj.status = 'Unknown'
+      }
+    }
+  )
   return all
 }
 
@@ -22,11 +53,23 @@ function getMesh(name) {
 
 function setMesh(name, mesh) {
   db.setMesh(name, mesh)
-  return db.getMesh(name)
+  var old = meshes[name]
+  if (old) {
+    old.leave()
+    delete meshes[name]
+  }
+  mesh = db.getMesh(name)
+  meshes[name] = Mesh(mesh.agent, mesh.bootstraps)
+  return mesh
 }
 
 function delMesh(name) {
   db.delMesh(name)
+  var old = meshes[name]
+  if (old) {
+    old.leave()
+    delete meshes[name]
+  }
 }
 
 function allEndpoints(mesh) {
@@ -93,6 +136,7 @@ function delPort(mesh, ep, ip, proto, port) {
 }
 
 export default {
+  init,
   allMeshes,
   getMesh,
   setMesh,

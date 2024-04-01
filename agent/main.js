@@ -34,12 +34,10 @@ if (dbPath.startsWith('~/')) {
 }
 
 db.open(dbPath, opt['--reset'])
+api.init()
 
 //
 // Data model:
-//   Port1 -> some service
-//   Port2 -> some service
-//   ...
 //   MeshA
 //     EndpointA
 //       Port1 -> some service
@@ -48,13 +46,6 @@ db.open(dbPath, opt['--reset'])
 //       ServiceY
 //       ...
 //     EndpointB
-//     ...
-//     ServiceX
-//       User1: (name, cert)
-//       User2: (name, cert)
-//       ...
-//     ServiceY
-//     ServiceZ
 //     ...
 //   MeshB
 //   ...
@@ -225,11 +216,11 @@ pipy.listen(opt['--listen'], $=>$
       var params = null
       var route = routes.find(r => Boolean(params = r.match(path)))
       if (route) {
-        // try {
+        try {
           return route.handler(params, req)
-        // } catch (e) {
-        //   return responseJSON(500, e)
-        // }
+        } catch (e) {
+          return responseJSON(500, e)
+        }
       }
       return new Message({ status: 404 })
     }

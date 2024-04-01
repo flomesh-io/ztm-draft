@@ -2,7 +2,7 @@ var db = null
 
 function open(pathname, reset) {
   if (reset) {
-    os.rm(DB_FILENAME)
+    os.rm(pathname)
   }
 
   db = sqlite(pathname)
