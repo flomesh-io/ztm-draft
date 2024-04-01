@@ -28,6 +28,16 @@ const meshes = ref([]);
 const isLogined = computed(() => {
 	return store.getters['account/user']
 });
+
+const placeholder = computed(() => {
+	if(!meshes.value || meshes.value.length ==0){
+		return "No Mesh";
+	} else if(meshes.value.length == 1){
+		return "1 Mesh Joined.";
+	} else {
+		return `${meshes.value.length} Mesh Joined.`;
+	}
+});
 const user = computed(() => {
 	return store.getters['account/user'];
 });
@@ -160,7 +170,7 @@ const restart = ref(false);
 				v-model="selected" 
 				:options="meshes" 
 				optionLabel="label" 
-				:placeholder="`${meshes.length} ${meshes.length>1?'Meshes':'Mesh'} Joined`" 
+				:placeholder="placeholder" 
 				class="w-20rem transparent">
 <!-- 				    <template #optiongroup="slotProps">
 				        <div class="flex align-items-center">
