@@ -87,7 +87,7 @@ const startPipy = async () => {
 	localStorage.setItem("VITE_APP_API_PORT", config.value.port);
 	localStorage.setItem("VITE_APP_API_DB", config.value.db);
 	const path = import.meta.env.VITE_APP_API_PATH;
-	const args = `${path} --skip-unknown-arguments --listen:${config.value.port} --database:${config.value.db}`;
+	const args = `${path} --skip-unknown-arguments --listen=${config.value.port} --database=${config.value.db}`;
 	// const args = `${path}`;
 	console.log(`[starting pipy:${args}]`);
 	const command = Command.create('pipy', [args]);
