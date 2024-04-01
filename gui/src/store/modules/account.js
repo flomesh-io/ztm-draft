@@ -9,9 +9,13 @@ export default {
 		appkey: null,
 		pipyVersion: '',
 		client: null,
+		process: null,
 		collapsed: true,
   },
   getters: {
+    process: (state) => {
+      return state.process;
+    },
     pipyRunning: (state) => {
       return state.pipyRunning;
     },
@@ -60,6 +64,9 @@ export default {
   mutations: {
     setPipyRunning(state, pipyRunning) {
       state.pipyRunning = pipyRunning;
+    },
+    setProcess(state, process) {
+      state.process = process;
     },
     setClient(state, client) {
       state.client = client;

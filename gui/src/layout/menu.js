@@ -1,55 +1,61 @@
 const prodMenu = {
 	client: [
 		{
-				label: 'Hubs', icon: 'pi pi-fw pi-globe', route: '/agent/hub/list'
-		},
-		// {
-		// 		label: 'Network', icon: 'pi pi-fw pi-globe', route: '/client/network', shortcut: '⌘+N'
-		// },
-		{
-				label: 'Host Info', icon: 'pi pi-fw pi-desktop', route: '/client/hostinfo'
-		},
-		// {
-		// 		label: 'Test Tool', icon: 'pi pi-fw pi-wifi', route: '/client/testtool'
-		// },
-		{
-				label: 'Config', icon: 'pi pi-fw pi-cog', route: '/client/config'
+				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
 		},
 		{
-				label: 'Doc',
-				icon: 'pi pi-fw pi-question',
-				route: '/client/documentation'
-		}
+				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/list'
+		},
+		{
+				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'
+		},
 	],
 	server: [
 		{
-				label: 'Hubs', icon: 'pi pi-fw pi-globe', route: '/agent/hub/list'
+				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
 		},
-		// {
-		// 		label: 'Network', icon: 'pi pi-fw pi-globe', route: '/server/network', cond: 'client'
-		// },
 		{
-				label: 'Host Info', icon: 'pi pi-fw pi-desktop', route: '/server/hostinfo', cond: 'client'
+				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/list'
 		},
-		// {
-		// 		label: 'Test Tool', icon: 'pi pi-fw pi-wifi', route: '/server/testtool', cond: 'client'
-		// },
 		{
-				label: 'Config', icon: 'pi pi-fw pi-cog', route: '/server/config', cond: 'client'
+				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'
 		},
-		// {
-		// 		label: 'Clients', icon: 'pi pi-fw pi-desktop', route: '/server/clients', shortcut: '⌘+N'
-		// },
-		// {
-		// 		label: 'Backends', icon: 'pi pi-fw pi-sitemap', route: '/server/backends'
-		// },
-		// {
-		// 		label: 'Database', icon: 'pi pi-fw pi-database', route: '/server/database', shortcut: '⌘+N'
-		// },
 	]
 };
 
+		
 const devMenu = [
+		{
+			
+			label: 'Bak Pages',
+			icon: 'pi pi-fw pi-briefcase',
+			items: [
+				{
+						label: 'Config', icon: 'pi pi-fw pi-cog', route: '/client/config'
+				},
+				{
+						label: 'Doc',
+						icon: 'pi pi-fw pi-question',
+						route: '/client/documentation'
+				},
+				{
+						label: 'Network', icon: 'pi pi-fw pi-globe', route: '/server/network', cond: 'client'
+				},
+				
+				{
+						label: 'Test Tool', icon: 'pi pi-fw pi-wifi', route: '/server/testtool', cond: 'client'
+				},
+				{
+						label: 'Clients', icon: 'pi pi-fw pi-desktop', route: '/server/clients', shortcut: '⌘+N'
+				},
+				{
+						label: 'Backends', icon: 'pi pi-fw pi-sitemap', route: '/server/backends'
+				},
+				{
+						label: 'Database', icon: 'pi pi-fw pi-database', route: '/server/database', shortcut: '⌘+N'
+				},
+			]
+		},
 		{
 		    label: 'Pages',
 		    icon: 'pi pi-fw pi-briefcase',

@@ -17,13 +17,27 @@ const METHOD = {
   PUT: "PUT",
 };
 
+function getUrl(url){
+	return `http://127.0.0.1:${getPort()}${url}`
+}
+const getPort = () => {
+	const VITE_APP_API_PORT = localStorage.getItem("VITE_APP_API_PORT");
+	const DEFAULT_VITE_APP_API_PORT = import.meta.env.VITE_APP_API_PORT;
+	return VITE_APP_API_PORT || DEFAULT_VITE_APP_API_PORT;
+}
+const getDB = () => {
+	const VITE_APP_API_DB = localStorage.getItem("VITE_APP_API_DB");
+	const DEFAULT_VITE_APP_API_DB = import.meta.env.VITE_APP_API_DB;
+	return VITE_APP_API_DB || DEFAULT_VITE_APP_API_DB;
+}
+
 async function request(url, method, params, config) {
   switch (method) {
     case METHOD.GET:
     case METHOD.POST:
     case METHOD.DELETE:
     case METHOD.PUT:
-			return fetch(url, {
+			return fetch(getUrl(url), {
 				method,
 				header:{
 					"Content-Type": "application/json"
@@ -32,7 +46,7 @@ async function request(url, method, params, config) {
 				...config
 			}).then((res) => res.json());
     default:
-			return fetch(url, {
+			return fetch(getUrl(url), {
 				method: "GET",
 				header:{
 					"Content-Type": "application/json"
@@ -148,4 +162,6 @@ export {
   loadInterceptors,
   parseUrlParams,
   getHeaders,
+	getPort,
+	getDB
 };

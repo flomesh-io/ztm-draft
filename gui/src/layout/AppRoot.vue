@@ -13,14 +13,17 @@ import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
 import { Command } from '@tauri-apps/plugin-shell';
+import { hostname, platform, locale } from '@tauri-apps/plugin-os';
+import { invoke } from '@tauri-apps/api/core';
+import { getPort, getDB } from '@/service/common/request';
 
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
 
 const router = useRouter();
 const pipyProxyService = new PipyProxyService();
-const selectedGateway = ref(null);
-const gateways = ref([]);
+const selected = ref(null);
+const meshes = ref([]);
 
 const isLogined = computed(() => {
 	return store.getters['account/user']
@@ -35,19 +38,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
 });
 const loaddata = () => {
-	pipyProxyService.getMyGateways()
+	pipyProxyService.getMeshes()
 		.then(res => {
-			console.log(res);
 			playing.value = true;
-			gateways.value = res?.data;
-			if(gateways.value!=null && gateways.value.length ==0){
-				
-				gateways.value = [
-					{ label: 'Dalian Hub', value: 'Dalian' },
-					{ label: 'Beijing Hub', value: 'Beijing' },
-					{ label: 'Shanghai Hub', value: 'Shanghai' }
-				]
-			}
+			meshes.value = res;
 		})
 		.catch(err => console.log('Request Failed', err)); 
 }
@@ -58,14 +52,15 @@ const play = () => {
 	pipyPlay();
 }
 
-const getPort = () => {
-	const VITE_APP_API_PORT = localStorage.getItem("VITE_APP_API_PORT");
-	const DEFAULT_VITE_APP_API_PORT = import.meta.env.VITE_APP_API_PORT;
-	return VITE_APP_API_PORT || DEFAULT_VITE_APP_API_PORT;
-}
-
 const pipyInit = async (pause) => {
-	await startPipy();
+	const hostname = await invoke("plugin:os|hostname");
+	store.commit('account/setUser', {
+		id: hostname
+	});
+	let process = store.getters['account/process'];
+	if(!process){
+		await startPipy();
+	}
 	setTimeout(() => {
 		loaddata();
 	},300)
@@ -77,25 +72,27 @@ const pipyPlay = async () => {
 	},300)
 }
 
-let child = null;
 const startPipy = async () => {
-	if(!!child){
-		child.kill();
-		child = null;
-	}
+	await pausePipy();
 	localStorage.setItem("VITE_APP_API_PORT", config.value.port);
-	console.log(`[starting pipy:${config.value.port}]`);
-	const command = Command.create('pipy', [`../../agent/main.js --skip-unknown-arguments --listen:${config.value.port}`]);
+	localStorage.setItem("VITE_APP_API_DB", config.value.db);
+	const path = import.meta.env.VITE_APP_API_PATH;
+	const args = `${path} --skip-unknown-arguments --listen:${config.value.port} --database:${config.value.db}`;
+	// const args = `${path}`;
+	console.log(`[starting pipy:${args}]`);
+	const command = Command.create('pipy', [args]);
 	command.on('close', data => {
 	  console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
 	});
 	command.on('error', error => console.error(`command error: "${error}"`));
-	child = await command.spawn();
+	let process = await command.spawn();
+	store.commit('account/setProcess', process);
 }
 const pausePipy = async () => {
-	if(!!child){
-		child.kill();
-		child = null;
+	let process = store.getters['account/process'];
+	if(!!process){
+		process.kill();
+		store.commit('account/setProcess', null);
 	}
 	playing.value = false;
 	console.log('[paused pipy]');
@@ -122,7 +119,8 @@ const logout = () => {
 const configOpen = ref(false);
 const logoHover = ref(false);
 const config = ref({
-	port: getPort()
+	port: getPort(),
+	db: getDB()
 });
 const clickCollapse = (path) => {
 	router.push(path)
@@ -130,10 +128,9 @@ const clickCollapse = (path) => {
 const goLogin = () => {
 	router.push('/login');
 }
-const goConfig = () => {
-	router.push(isAdmin()?'/server/config':'/client/config');
+const goConsole = () => {
+	router.push('/mesh/list');
 }
-
 const restart = ref(false);
 </script>
 
@@ -145,7 +142,7 @@ const restart = ref(false);
 	  <div class="wave"></div>
 	  <div class="wave"></div>
 		<PipyVersion class="left-fixed"/>
-		<div class="userinfo" v-if="user">
+		<div class="userinfo" v-if="user" v-tooltip="user?.id">
 			<Avatar icon="pi pi-user" style="background-color: rgba(255, 255, 2555, 0.5);color: #fff" shape="circle" />
 			{{user?.id}}
 		</div>
@@ -160,10 +157,10 @@ const restart = ref(false);
 				<Button v-if="!isLogined" class="w-20rem" @click="goLogin">Login</Button>
 				<Dropdown 
 				v-else
-				v-model="selectedGateway" 
-				:options="gateways" 
+				v-model="selected" 
+				:options="meshes" 
 				optionLabel="label" 
-				placeholder="Mesh List" 
+				:placeholder="`${meshes.length} ${meshes.length>1?'Meshes':'Mesh'} Joined`" 
 				class="w-20rem transparent">
 <!-- 				    <template #optiongroup="slotProps">
 				        <div class="flex align-items-center">
@@ -174,13 +171,13 @@ const restart = ref(false);
 				    <template #option="slotProps">
 				        <div class="flex align-items-center">
 										<span class="status-point run mr-3"/>
-				            <div>{{ slotProps.option.label }}</div>
+				            <div>{{ decodeURI(slotProps.option.name) }}</div>
 				        </div>
 				    </template>
 						 <template #value="slotProps">
 									<div v-if="slotProps.value" class="flex align-items-center">
 											<span class="status-point run mr-3"/>
-											<div>{{ slotProps.value.label }}</div>
+											<div>{{ decodeURI(slotProps.value.name) }}</div>
 									</div>
 									<span v-else>
 											{{ slotProps.placeholder }}
@@ -208,7 +205,7 @@ const restart = ref(false);
 				</Button>
 			</div>
 			<div class="flex-item">
-				<Button :disabled="!isLogined" v-tooltip="'Find Hub'" class="pointer" severity="help" text rounded aria-label="Filter" @click="clickCollapse('/agent/hub/list')" >
+				<Button :disabled="!isLogined" v-tooltip="'Find Mesh'" class="pointer" severity="help" text rounded aria-label="Filter" @click="goConsole" >
 					<i class="pi pi-search " />
 				</Button>
 			</div>
@@ -237,15 +234,21 @@ const restart = ref(false);
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">Port</div>
-							<div class="">
+							<div >
 									<InputNumber :useGrouping="false" style="width: 80px;" :min="0" :max="65535" placeholder="0-65535" v-model="config.port" />
 							
 							</div>
 					</li>
+					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
+							<div class="font-medium font-bold w-3">DB</div>
+							<div >
+									<InputText class="text-left" :useGrouping="false" style="width: 200px;" placeholder="Pipy db path" v-model="config.db" />
+							</div>
+					</li>
 					<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">More</div>
-							<div class="">
-								<Button  class="w-12rem" @click="goConfig">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
+							<div >
+								<Button  class="w-12rem" @click="goConsole">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
 							</div>
 					</li>
 				</ul>
@@ -280,6 +283,10 @@ const restart = ref(false);
 		right: 15px;
 		color: rgba(255,255,255,0.7);
 		font-weight: bold;
+		text-overflow: ellipsis;
+		width: 130px;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 	.userinfo .p-avatar{
 		vertical-align: middle;

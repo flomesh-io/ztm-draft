@@ -57,7 +57,7 @@ const loginGuard = (to, from, next, options) => {
 		resize(455,350,false);
     next();
   } else {
-		resize(1280,800,true);
+		resize(1280,860,true);
     next();
 	}
 };

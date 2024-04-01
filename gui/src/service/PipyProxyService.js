@@ -21,12 +21,17 @@ export default class PipyProxyService {
 	getCa({id}) {
 		return request('/api/get-ca');
 	}
-	getMyGateways() {
-		//http://localhost:1420/api/meshes
-		return request('http://127.0.0.1:6666/api/meshes');
+	getMeshes() {
+		return request('/api/meshes');
+	}
+	joinMesh(name, config) {
+		return request(`/api/meshes/${name}`,"POST",config);
+	}
+	deleteMesh(name) {
+		return request(`/api/meshes/${name}`,"DELETE");
 	}
 	downloadCa({id}) {
-		return this.beforePath(id)+'/api/download-ca';
+		return '/api/download-ca';
 	}
 	renewCa({id, organization, commonName}) {
 		return request('/api/renew-ca',"POST",{
