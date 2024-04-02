@@ -5,7 +5,7 @@
 	"private": true,
 	"license": "MIT",
 	"scripts": {
-		"copy-code": "cp -r ../agent public",
+		"copy-code": "cp -r ../agent ./",
 		"dev": "npm run copy-code && vite",
 		"build": "npm run copy-code && vite build",
 		"preview": "vite preview",

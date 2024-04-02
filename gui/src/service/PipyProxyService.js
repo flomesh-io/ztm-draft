@@ -33,7 +33,7 @@ export default class PipyProxyService {
 		name, 
 		proto
 	}) {
-		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"POST");
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"POST", {});
 	}
 	deleteMesh(name) {
 		return request(`/api/meshes/${name}`,"DELETE");

@@ -12,7 +12,7 @@ import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
 import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
-import { Command } from '@tauri-apps/plugin-shell';
+import { Command, Child } from '@tauri-apps/plugin-shell';
 import { hostname, platform, locale } from '@tauri-apps/plugin-os';
 import { invoke } from '@tauri-apps/api/core';
 import { getPort, getDB } from '@/service/common/request';
@@ -66,10 +66,10 @@ const pipyInit = async (pause) => {
 	store.commit('account/setUser', {
 		id: hostname
 	});
-	let process = store.getters['account/process'];
-	if(!process){
+	// let pid = store.getters['account/pid'];
+	// if(!pid){
 		await startPipy();
-	}
+	// }
 	setTimeout(() => {
 		loaddata();
 	},300)
@@ -86,22 +86,36 @@ const startPipy = async () => {
 	localStorage.setItem("VITE_APP_API_PORT", config.value.port);
 	localStorage.setItem("VITE_APP_API_DB", config.value.db);
 	const path = import.meta.env.VITE_APP_API_PATH;
-	const args = `${path} --skip-unknown-arguments --listen=${config.value.port} --database=${config.value.db}`;
-	// const args = `${path}`;
+	const log = import.meta.env.VITE_APP_API_LOG;
+	//--skip-unknown-arguments 
+	//--listen=${config.value.port} --database=${config.value.db} --log-file=${log}
+	//pipy ../agent/main.js --log-file=../ztm_log.txt --skip-unknown-arguments --listen=6666 --database=~/ztm.db
+	const args = [
+		path,
+		`--log-file=${log}`,
+		"--skip-unknown-arguments",
+		`--listen=${config.value.port}`,
+		`--database=${config.value.db}`,
+	];
 	console.log(`[starting pipy:${args}]`);
-	const command = Command.create('pipy', [args]);
+	const command = Command.create('pipy', args);
+	// const command = Command.create('pwd');
 	command.on('close', data => {
+		console.log(data);
 	  console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
 	});
+	// command.stdout.on('data', line => console.log(`command stdout: "${line}"`));
+	// command.stderr.on('data', line => console.log(`command stderr: "${line}"`));
 	command.on('error', error => console.error(`command error: "${error}"`));
-	let process = await command.spawn();
-	store.commit('account/setProcess', process);
+	let child = await command.spawn();
+	store.commit('account/setPid', child.pid);
 }
 const pausePipy = async () => {
-	let process = store.getters['account/process'];
-	if(!!process){
-		process.kill();
-		store.commit('account/setProcess', null);
+	let pid = store.getters['account/pid'];
+	if(!!pid){
+		const child = new Child(pid)
+		child.kill();
+		store.commit('account/setPid', null);
 	}
 	playing.value = false;
 	console.log('[paused pipy]');

@@ -54,7 +54,10 @@ const commit = () => {
 				toast.add({ severity: 'error', summary:'Tips', detail: 'Create Failed.', life: 3000 });
 			}
 		})
-		.catch(err => console.log('Request Failed', err)); 
+		.catch(err => {
+			debugger
+			console.log('Request Failed', err)
+		}); 
 }
 onMounted(() => {
 });

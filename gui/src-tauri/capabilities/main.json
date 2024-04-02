@@ -42,6 +42,11 @@
           "sidecar": false
         },
         {
+          "name": "pwd",
+          "cmd": "pwd",
+          "sidecar": false
+        },
+        {
           "name": "lsof",
           "cmd": "lsof",
           "args": [

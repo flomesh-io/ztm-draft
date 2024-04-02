@@ -17,7 +17,9 @@ dist-ssr
 coverage
 *.local
 /release
+/agent
 /public/agent
+/public/log
 /cypress/videos/
 /cypress/screenshots/
 /mock/*.mjs

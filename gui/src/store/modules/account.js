@@ -9,12 +9,12 @@ export default {
 		appkey: null,
 		pipyVersion: '',
 		client: null,
-		process: null,
+		pid: null,
 		collapsed: true,
   },
   getters: {
-    process: (state) => {
-      return state.process;
+    pid: (state) => {
+      return localStorage.getItem('PID') || state.pid;
     },
     pipyRunning: (state) => {
       return state.pipyRunning;
@@ -65,8 +65,9 @@ export default {
     setPipyRunning(state, pipyRunning) {
       state.pipyRunning = pipyRunning;
     },
-    setProcess(state, process) {
-      state.process = process;
+    setPid(state, pid) {
+      state.pid = pid;
+			localStorage.setItem('PID',pid);
     },
     setClient(state, client) {
       state.client = client;
