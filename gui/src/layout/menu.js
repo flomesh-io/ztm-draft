@@ -4,7 +4,7 @@ const prodMenu = {
 				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
 		},
 		{
-				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/list'
+				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/services'
 		},
 		{
 				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'
@@ -15,7 +15,7 @@ const prodMenu = {
 				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
 		},
 		{
-				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/list'
+				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/services'
 		},
 		{
 				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'

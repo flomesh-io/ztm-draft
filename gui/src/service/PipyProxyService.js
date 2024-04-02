@@ -27,6 +27,14 @@ export default class PipyProxyService {
 	joinMesh(name, config) {
 		return request(`/api/meshes/${name}`,"POST",config);
 	}
+	createService({
+		mesh,
+		ep,
+		name, 
+		proto
+	}) {
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"POST");
+	}
 	deleteMesh(name) {
 		return request(`/api/meshes/${name}`,"DELETE");
 	}

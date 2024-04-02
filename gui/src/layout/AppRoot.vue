@@ -22,7 +22,6 @@ const emits = defineEmits(['collapse']);
 
 const router = useRouter();
 const pipyProxyService = new PipyProxyService();
-const selected = ref(null);
 const meshes = ref([]);
 
 const isLogined = computed(() => {
@@ -167,7 +166,6 @@ const restart = ref(false);
 				<Button v-if="!isLogined" class="w-20rem" @click="goLogin">Login</Button>
 				<Dropdown 
 				v-else
-				v-model="selected" 
 				:options="meshes" 
 				optionLabel="label" 
 				:placeholder="placeholder" 

@@ -96,7 +96,7 @@ const join = () => {
 				<template #header>
 					<i class="pi pi-plus mr-2" /> Join
 				</template>
-	      <MeshJoin @join="join"/>
+	      <MeshJoin @save="join"/>
 	    </TabPanel>
 	</TabView>
 </template>

@@ -196,10 +196,19 @@ pre.app-code code{
 	width:200px;
 }
 .add-tag-input.max{
-	min-width:400px;
+	max-width:400px;
+	width: 100%;
 }
 .add-tag-input.max:focus,.add-tag-input.max:hover{
-	min-width:400px;
+	max-width:400px;
+	width: 100%;
+}
+.teatarea-panel{
+	width: 100%;
+	max-width:400px;
+}
+.teatarea-panel>span,.teatarea-panel textarea{
+	width: 100%;
 }
 .add-tag-input.xl{
 	width:100px;
@@ -305,6 +314,18 @@ pre.app-code code{
 	border-width: 0 3px 0 0 !important;
 	border-color: var(--primary-color) !important;
 	border-style: solid !important;
+}
+
+.search-bar .p-dropdown{
+	background-color: var(--primary-color) !important;
+	border: none;
+}
+.search-bar .p-dropdown .p-dropdown-label{
+	color:#fff;
+	font-weight: bold;
+}
+.search-bar .p-dropdown .p-dropdown-trigger{
+	color:#fff;
 }
 .disabled{
 	opacity: 0.5;
@@ -490,4 +511,29 @@ pre.app-code code{
 }
 .p-tabview-nav-link{
 	outline: none !important;
+}
+.p-tabview .p-tabview-panels{
+	padding-left: 0;
+	padding-right: 0;
+}
+@media screen and (min-width: 768px){
+	.p-tabview .p-tabview-panels{
+		padding: 0.875rem 1.125rem 1.125rem 1.125rem;
+	}
+}
+.surface-border.flex-wrap>div{
+	line-height: 24px;
+}
+.p-chip .p-dropdown{
+	background-color: transparent;
+	border: none;
+	box-shadow: none;
+	line-height: 20px;
+}
+.p-chip .p-dropdown-label.p-inputtext{
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+.p-chip .add-tag-input{
+	font-size: 1rem;
 }

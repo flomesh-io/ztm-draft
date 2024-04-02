@@ -7,7 +7,16 @@ import { isAdmin } from "@/service/common/authority-utils";
 import store from "@/store";
 import _ from "lodash"
 
-const emits = defineEmits(['save']);
+const emits = defineEmits(['join']);
+const props = defineProps({
+    meshes: {
+        type: Array,
+        default: ()=>{
+        	return [];
+        }
+    }
+});
+const selected = ref(null);
 const route = useRoute();
 const toast = useToast();
 const pipyProxyService = new PipyProxyService();
@@ -17,43 +26,32 @@ const user = computed(() => {
 const loading = ref(false);
 const config = ref({
 	name: "",
-	agent: {
-		name: user.id,
-		certificate: "",
-		privateKey: "",
-	},
-	bootstraps: []
+	protocol: "tcp"
 });
 const newConfig = () => {
 	config.value = {
 		name: "",
-		agent: {
-			name: user.id,
-			certificate: "",
-			privateKey: "",
-		},
-		bootstraps: []
+		protocol: "tcp"
 	}
 }
 
 const enabled = computed(() => {
-	return config.value.name.length>0 
-	&& config.value.agent.certificate.length>0 
-	&& config.value.agent.privateKey.length>0 
-	&& config.value.bootstraps.length>0;
+	return config.value.name.length>0 && selected.value && !!selected.value.agent?.id;
 });
 const commit = () => {
-	const joinName = config.value.name;
-	const saveData = _.cloneDeep(config.value)
-	delete saveData.name;
-	pipyProxyService.joinMesh(joinName, saveData)
+	pipyProxyService.createService({
+		name: config.value.name,
+		proto: config.value.protocol,
+		mesh: selected.value.name,
+		ep: selected.value.agent?.id,
+	})
 		.then(res => {
 			if(!!res.name){
-				toast.add({ severity: 'success', summary:'Tips', detail: 'Joined.', life: 3000 });
+				toast.add({ severity: 'success', summary:'Tips', detail: 'Create successfully.', life: 3000 });
 				emits("save", config.value);
 				newConfig();
 			} else{
-				toast.add({ severity: 'error', summary:'Tips', detail: 'Join Failed.', life: 3000 });
+				toast.add({ severity: 'error', summary:'Tips', detail: 'Create Failed.', life: 3000 });
 			}
 		})
 		.catch(err => console.log('Request Failed', err)); 
@@ -70,7 +68,7 @@ const home = ref({
 		<Breadcrumb :home="home" :model="[{label:route.params?.id}]" />
 	</div>
 	<div >
-		<BlockViewer text="Json" header="Join Mesh" containerClass="surface-section px-3 py-3 md:px-4 md:py-7 lg:px-5" >
+		<BlockViewer text="Json" header="Create Service" containerClass="surface-section px-3 py-3 md:px-4 md:py-7 lg:px-5" >
 			<template #actions>
 				<Button :disabled="!enabled" label="Save" aria-label="Submit" size="small" @click="commit"/>
 			</template>
@@ -92,8 +90,45 @@ const home = ref({
 			
 			<div class="surface-section">
 				<ul class="list-none p-0 m-0">
+					
+									
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
 							<div class="text-500 w-6 md:w-2 font-medium">Mesh</div>
+							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+								<Chip class="pl-0 pr-3 mr-2">
+										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-globe"/>
+										</span>
+										<span class="ml-2 font-medium">
+											
+											<Dropdown
+												v-model="selected" 
+												:options="meshes" 
+												optionLabel="label" 
+												placeholder="Mesh" 
+												class="flex">
+														<template #option="slotProps">
+																<div class="flex align-items-center">
+																		<span class="status-point run mr-3"/>
+																		<div>{{ decodeURI(slotProps.option.name) }}</div>
+																</div>
+														</template>
+														 <template #value="slotProps">
+																	<div v-if="slotProps.value" class="flex align-items-center">
+																			<span class="status-point run mr-3"/>
+																			<div>{{ decodeURI(slotProps.value.name) }}</div>
+																	</div>
+																	<span v-else>
+																			{{ slotProps.placeholder }}
+																	</span>
+															</template>
+												</Dropdown>
+										</span>
+								</Chip>
+							</div>
+					</li>
+					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Service</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
 								<Chip class="pl-0 pr-3 mr-2">
 								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
@@ -105,41 +140,24 @@ const home = ref({
 								</Chip>
 							</div>
 					</li>
-					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Bootstraps</div>
+					<li class="flex align-items-center py-3 px-2 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Protocol</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1 bootstrap">
-								<ChipList icon="pi-desktop" placeholder="Host[:Port]" v-model:list="config.bootstraps" />
-							</div>
-					</li>
-					
-					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Certificate</div>
-							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
-								<Chip class="pl-0 pr-3 mb-2 align-items-top teatarea-panel"  >
+								<Chip class="pl-0 pr-3">
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-											<i class="pi pi-shield" />
+											<RadioButton v-model="config.protocol" inputId="scopeType2" name="scopeType" value="tcp" />
 										</span>
-										<span class="ml-2 font-medium">
-											<Textarea  placeholder="Unset" class="add-tag-input" :unstyled="true" v-model="config.agent.certificate" :autoResize="false" rows="9" />
-										</span>
-								</Chip>	
-							</div>
-					</li>
-					<li class="flex align-items-center py-3 px-2  surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Private Key</div>
-							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+										<span class="ml-2 font-medium">TCP</span>
+								</Chip>
 								
-								<Chip class="pl-0 pr-3 mb-2 align-items-top teatarea-panel">
+								<Chip class="ml-2 pl-0 pr-3">
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-											<i class="pi pi-key" />
+											<RadioButton v-model="config.protocol" inputId="scopeType3" name="scopeType" value="udp" />
 										</span>
-										<span class="ml-2 font-medium">
-											<Textarea placeholder="Unset" class="add-tag-input" :unstyled="true" v-model="config.agent.privateKey" :autoResize="false" rows="6"  />
-										</span>
+										<span class="ml-2 font-medium">UDP</span>
 								</Chip>
 							</div>
 					</li>
-					
 				</ul>
 			</div>
 		</BlockViewer>

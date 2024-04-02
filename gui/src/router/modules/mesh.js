@@ -8,6 +8,11 @@ const agent = {
 				name: 'meshes',
 				component: () => import('@/views/mesh/Meshes.vue')
 		},
+		{
+				path: '/mesh/services',
+				name: 'services',
+				component: () => import('@/views/mesh/Services.vue')
+		},
 		// {
 		// 		path: '/agent/hub/create',
 		// 		name: 'hub detail',

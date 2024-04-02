@@ -1,6 +1,6 @@
 import _ from "lodash";
 import client from "./modules/client";
-import agent from "./modules/agent";
+import mesh from "./modules/mesh";
 import pages from "./modules/pages";
 import uikit from "./modules/uikit";
 import AppLayout from '@/layout/AppLayout.vue';
@@ -42,12 +42,12 @@ const options = {
         component: AppLayout,
 				redirect: "/root",
         children: process.env.NODE_ENV === "development"?[
-					agent,
+					mesh,
 					client,
 					uikit,
 					pages,
         ]:[
-					agent,
+					mesh,
 					client,
 				]
     },

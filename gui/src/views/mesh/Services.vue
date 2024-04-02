@@ -2,29 +2,29 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from 'vue-router'
 import PipyProxyService from '@/service/PipyProxyService';
+import ServiceCreate from './ServiceCreate.vue'
 const router = useRouter();
 import store from "@/store";
 const pipyProxyService = new PipyProxyService();
-
-const hubs = ref([]);
+const meshes = ref([]);
 const status = ref({});
+const selected = ref(null);
 const scopeType = ref('All');
 onMounted(() => {
-	hubs.value = [{
-		agent: "中国香港",
-		hub: "Dalian Hub",
-		host: "192.168.1.1",
-		port: "8080",
-		scope: "Public",
-	},{
-		agent: "中国香港",
-		hub: "Shanghai Hub",
-		host: "192.168.1.1",
-		port: "9090",
-		scope: "Private",
-	}];
+	loaddata();
 });
 
+const loaddata = () => {
+	pipyProxyService.getMeshes()
+		.then(res => {
+			meshes.value = res || [];
+			meshes.value.forEach((mesh) => {
+				mesh.value = mesh.name
+			});
+			selected.value = meshes.value[0];
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
 
 const typing = ref('');
 const clickSearch = () => {
@@ -39,20 +39,54 @@ const clients = () => {
 const changeStatus = (hub,val) => {
 	status.value[`${hub.host}:${hub.port}`] = val;
 }
+
+const active = ref(0);
+const save = () => {
+	active.value = 0;
+	loaddata();
+}
 </script>
 
 <template>
-	<Card class="nopd ml-3 mr-3 mt-3">
+	<Card class="nopd ml-3 mr-3 mt-3" v-if="active==0">
 		<template #content>
-			<InputGroup>
-				<Button :label="scopeType" />
-				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing host | hub | agent" rows="1" cols="30" />
+			<InputGroup class="search-bar">
+				<Dropdown
+					v-model="selected" 
+					:options="meshes" 
+					optionLabel="label" 
+					placeholder="Mesh" 
+					style="max-width: 200px;"
+					class="transparent">
+	<!-- 				    <template #optiongroup="slotProps">
+									<div class="flex align-items-center">
+											<i class="pi pi-star-fill " style="color: orange;"/>
+											<div>{{ slotProps.option.label }}</div>
+									</div>
+							</template> -->
+							<template #option="slotProps">
+									<div class="flex align-items-center">
+											<span class="status-point run mr-3"/>
+											<div>{{ decodeURI(slotProps.option.name) }}</div>
+									</div>
+							</template>
+							 <template #value="slotProps">
+										<div v-if="slotProps.value" class="flex align-items-center">
+												<span class="status-point run mr-3"/>
+												<div>{{ decodeURI(slotProps.value.name) }}</div>
+										</div>
+										<span v-else>
+												{{ slotProps.placeholder }}
+										</span>
+								</template>
+					</Dropdown>
+				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service name | host" rows="1" cols="30" />
 				<Button :disabled="!typing" icon="pi pi-search"  @click="clickSearch"/>
 			</InputGroup>
 		</template>
 	</Card>
 	
-	<div class="text-center mt-3">
+	<div class="text-center mt-3" v-if="active==0">
 		
 		<Chip class="pl-0 pr-3">
 				<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
@@ -65,98 +99,63 @@ const changeStatus = (hub,val) => {
 				<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 					<RadioButton v-model="scopeType" inputId="scopeType2" name="scopeType" value="Public" />
 				</span>
-				<span class="ml-2 font-medium">Public</span>
+				<span class="ml-2 font-medium">Remote</span>
 		</Chip>
 		
 		<Chip class="ml-2 pl-0 pr-3">
 				<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 					<RadioButton v-model="scopeType" inputId="scopeType3" name="scopeType" value="Private" />
 				</span>
-				<span class="ml-2 font-medium">Private</span>
+				<span class="ml-2 font-medium">Local</span>
 		</Chip>
-		<Button @click="newHub" class="ml-5" size="small" aria-label="Filter" style="vertical-align: middle;top:-2px"><i class="pi pi-plus mr-2"/> Create</Button>
 	</div>
-	<TabView class="pt-3 pl-3 pr-3">
-	    <TabPanel header="Market" >
-	        <div class="grid">
-	            <div class="col-12 md:col-6 lg:col-3" v-for="(hub,hid) in hubs" :key="hid">
-	                <div class="surface-card shadow-2 p-3 border-round">
-	                    <div class="flex justify-content-between mb-3">
-	                        <div>
-	                            <span class="block text-500 font-medium mb-3">{{hub.agent}}</span>
-	                            <div class="text-900 font-medium text-xl">{{hub.hub}}</div>
-	                        </div>
-	                        <div v-tooltip="'Unsubscribe'" @click="changeStatus(hub, 1)" v-if="hub.scope == 'Public' && status[`${hub.host}:${hub.port}`] == 2" class="pointer flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">
-	                            <i class="pi pi-star-fill text-orange-500 text-xl"></i>
-	                        </div>
-	                        <div v-tooltip="'Subscribe'" @click="changeStatus(hub, 2)" v-else-if="hub.scope == 'Public'" class="pointer flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">
-	                            <i class="pi pi-star text-orange-500 text-xl"></i>
-	                        </div>
-													<div v-tooltip="'Revoke'" @click="changeStatus(hub, 3)" v-else-if="hub.scope == 'Private' && status[`${hub.host}:${hub.port}`] == 4" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
-													    <i class="pi pi-spin pi-spinner text-purple-500 text-xl"></i>
-													</div>
-													<div v-tooltip="'Application'" @click="changeStatus(hub, 4)" v-else-if="hub.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
-													    <i class="pi pi-angle-double-up text-purple-500 text-xl"></i>
-													</div>
-	                    </div>
-	                    <span class="text-500">{{hub.host}}:{{hub.port}}</span> | 
-											<span class="text-green-500">{{hub.scope}}</span>
-	                </div>
-	            </div>
-	        </div>
-	    </TabPanel>
-	    <TabPanel >
-				<template #header>
-					<i class="pi pi-star-fill mr-2" style="color: orange;"/>My Subscriptions
-				</template>
-	       <div class="grid">
-	           <div class="col-12 md:col-6 lg:col-3" v-for="(hub,hid) in hubs" :key="hid">
-	               <div class="surface-card shadow-2 p-3 border-round">
-	                   <div class="flex justify-content-between mb-3">
-	                       <div>
-	                            <span class="block text-500 font-medium mb-3">{{hub.agent}}</span>
-	                            <div class="text-900 font-medium text-xl">{{hub.hub}}</div>
-	                       </div>
-	                       <div v-tooltip="'Unsubscribe'" @click="changeStatus(hub, 1)" v-if="hub.scope == 'Public'" class="pointer flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">
-	                           <i class="pi pi-star-fill text-orange-500 text-xl"></i>
-	                       </div>
-	       								<div v-tooltip="'Revoke'" @click="changeStatus(hub, 3)" v-else-if="hub.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
-	       								    <i class="pi pi-spin pi-spinner text-purple-500 text-xl"></i>
-	       								</div>
-	                   </div>
-	                    <span class="text-500">{{hub.host}}:{{hub.port}}</span> | 
-											<span class="text-green-500">{{hub.scope}}</span>
-	               </div>
-	           </div>
-	       </div>
-	    </TabPanel>
-	    <TabPanel >
-				<template #header>
-					<i class="pi pi-wrench mr-2" />Manage
-				</template>
-	       <div class="grid">
-	           <div class="col-12 md:col-6 lg:col-3" v-for="(hub,hid) in hubs" :key="hid">
-	               <div class="surface-card shadow-2 p-3 border-round">
-	                   <div class="flex justify-content-between mb-3">
-	                       <div>
-	                            <span class="block text-500 font-medium mb-3">{{hub.agent}}</span>
-	                            <div class="text-900 font-medium text-xl">{{hub.hub}}</div>
-	                       </div>
-												 <div class="flex">
-													 <div v-badge.danger="'3'" v-tooltip="'Subscriptions'" @click="clients" class="mr-3 pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
-															 <i class="pi pi-user text-gray-500 text-xl"></i>
-													 </div>
-													 <div v-tooltip="'Manage'" @click="newHub" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
-															 <i class="pi pi-pencil text-gray-500 text-xl"></i>
-													 </div>
-												 </div>
-	                   </div>
-	                    <span class="text-500">{{hub.host}}:{{hub.port}}</span> | 
-											<span class="text-green-500">{{hub.scope}}</span>
-	               </div>
-	           </div>
-	       </div>
-	    </TabPanel>
+		
+	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+		<TabPanel>
+			<template #header>
+				<div @click="loaddata">
+					<i class="pi pi-star-fill mr-2" style="color: orange;"/>Services
+				</div>
+			</template>
+			<div class="text-center">
+				<div class="grid text-left" v-if="meshes && meshes.length >0">
+						<div class="col-12 md:col-6 lg:col-3" v-for="(mesh,hid) in meshes" :key="hid">
+							 <div class="surface-card shadow-2 p-3 border-round">
+									 <div class="flex justify-content-between mb-3">
+											 <div>
+														<span class="block text-500 font-medium mb-3">{{decodeURI(mesh.name)}}</span>
+														<div class="text-900 font-medium text-xl">Joined</div>
+											 </div>
+											 <div v-tooltip="'Unsubscribe'" @click="deleteMesh(mesh.name)" class="pointer flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">
+													 <i class="pi pi-star-fill text-orange-500 text-xl"></i>
+											 </div>
+	<!-- 	       								<div v-tooltip="'Revoke'" @click="changeStatus(mesh, 3)" v-else-if="mesh.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
+													<i class="pi pi-spin pi-spinner text-purple-500 text-xl"></i>
+											</div> -->
+										<!-- 	<div v-badge.danger="'3'" v-tooltip="'Subscriptions'" @click="clients" class="mr-3 pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
+												<i class="pi pi-user text-gray-500 text-xl"></i>
+											</div>
+											<div v-tooltip="'Manage'" @click="newHub" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
+												<i class="pi pi-pencil text-gray-500 text-xl"></i>
+											</div> -->
+									 </div>
+										<span class="text-500">{{mesh.bootstraps[0]}}</span>
+										<span class="text-green-500" v-if="mesh.bootstraps.length>1">... <Badge class="relative" style="top:-2px" :value="mesh.bootstraps.length"></Badge></span>
+							 </div>
+					 </div>
+				</div>
+				<img v-else src="/demo/images/landing/free.svg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
+			</div>
+		</TabPanel>
+		<TabPanel >
+			<template #header>
+				<i class="pi pi-plus mr-2" /> Create
+			</template>
+			<ServiceCreate :meshes="meshes" v-if="!!selected" :mesh="selected.name?.id" :ep="selected.agent?.id" @save="save"/>
+			<div v-else>
+				Join a mesh first.
+			</div>
+		</TabPanel>
 	</TabView>
 </template>
 
