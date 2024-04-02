@@ -51,7 +51,7 @@ api.init()
 //   ...
 //
 
-var paths = {
+var routes = Object.entries({
 
   //
   // Mesh
@@ -195,9 +195,8 @@ var paths = {
       return response(204)
     },
   },
-}
 
-var routes = Object.entries(paths).map(
+}).map(
   function ([path, methods]) {
     var match = new http.Match(path)
     var handler = function (params, req) {
