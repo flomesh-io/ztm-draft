@@ -16,6 +16,7 @@ onMounted(() => {
 });
 const loading = ref(false);
 const loaddata = () => {
+	active.value = 0;
 	loading.value = true;
 	pipyProxyService.getMeshes()
 		.then(res => {
@@ -55,7 +56,8 @@ const join = () => {
 
 <template>
 	
-	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+	<Loading v-if="loading"/>
+	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 	    <TabPanel>
 				<template #header>
 					<div @click="loaddata">
@@ -87,8 +89,8 @@ const join = () => {
 													<i class="pi pi-pencil text-gray-500 text-xl"></i>
 												</div> -->
 	                   </div>
-	                    <span class="text-500">{{mesh.bootstraps[0]}}</span>
-											<span class="text-green-500" v-if="mesh.bootstraps.length>1">... <Badge class="relative" style="top:-2px" :value="mesh.bootstraps.length"></Badge></span>
+	                    <span class="text-500">Boorstrap: </span>
+											<span class="text-green-500"><Badge v-tooltip="mesh.bootstraps.join('\n')" class="relative" style="top:-2px" :value="mesh.bootstraps.length"></Badge></span>
 	               </div>
 	           </div>
 					</div>

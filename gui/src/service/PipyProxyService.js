@@ -27,16 +27,66 @@ export default class PipyProxyService {
 	joinMesh(name, config) {
 		return request(`/api/meshes/${name}`,"POST",config);
 	}
+	getServices({
+		mesh,
+		ep
+	}) {
+		if(!!ep){
+			return request(`/api/meshes/${mesh}/endpoints/${ep}/services`);
+		} else {
+			return request(`/api/meshes/${mesh}/services`);
+		}
+	}
 	createService({
 		mesh,
 		ep,
 		name, 
-		proto
+		proto,
+		port,
+		host
 	}) {
-		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"POST", {});
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"POST", {
+			port, host
+		});
+	}
+	getPorts({
+		mesh,
+		ep
+	}) {
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/ports`);
+	}
+	getEndpoints(mesh) {
+		return request(`/api/meshes/${mesh}/endpoints`);
+	}
+	createPort({
+		mesh,
+		ep,
+		proto,
+		ip,
+		port,
+		body
+	}) {
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/ports/${ip}/${proto}/${port}`,"POST", body);
+	}
+	deletePort({
+		mesh,
+		ep,
+		proto,
+		ip,
+		port,
+	}) {
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/ports/${ip}/${proto}/${port}`,"DELETE");
 	}
 	deleteMesh(name) {
 		return request(`/api/meshes/${name}`,"DELETE");
+	}
+	deleteService({
+		mesh,
+		ep,
+		name, 
+		proto,
+	}) {
+		return request(`/api/meshes/${mesh}/endpoints/${ep}/services/${proto}/${name}`,"DELETE");
 	}
 	downloadCa({id}) {
 		return '/api/download-ca';

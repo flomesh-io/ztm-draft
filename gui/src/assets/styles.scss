@@ -216,6 +216,11 @@ pre.app-code code{
 .add-tag-input.xl:focus, .add-tag-input.xl:hover{
 	width:160px;
 }
+.p-chip textarea{
+	background-color: transparent;
+	border: none;
+	box-shadow:none;
+}
 .fr{
 	float: right;
 }
@@ -534,6 +539,20 @@ pre.app-code code{
 	padding-top: 0 !important;
 	padding-bottom: 0 !important;
 }
-.p-chip .add-tag-input{
+.p-chip .add-tag-input,.p-chip .add-tag-input>input{
 	font-size: 1rem;
+}
+.vm{
+	vertical-align: middle;
+}
+.nopd>.p-dialog-content{
+	background-color: transparent;
+	padding: 0;
+}
+.transparent{
+	background-color: transparent !important;
+}
+.transparent>.p-dialog-content{
+	background-color: transparent;
+	
 }

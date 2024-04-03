@@ -9,6 +9,7 @@ fn close_splashscreen(window: tauri::Window) {
     // 展示主视图
     window.get_webview_window("main").unwrap().show().unwrap();
 }
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()

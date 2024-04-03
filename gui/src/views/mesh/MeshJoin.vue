@@ -119,8 +119,8 @@ const home = ref({
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-shield" />
 										</span>
-										<span class="ml-2 font-medium">
-											<Textarea  placeholder="Unset" class="add-tag-input" :unstyled="true" v-model="config.agent.certificate" :autoResize="false" rows="9" />
+										<span class="font-medium">
+											<Textarea  placeholder="Unset" v-model="config.agent.certificate" :autoResize="false" rows="9" />
 										</span>
 								</Chip>	
 							</div>
@@ -133,8 +133,8 @@ const home = ref({
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-key" />
 										</span>
-										<span class="ml-2 font-medium">
-											<Textarea placeholder="Unset" class="add-tag-input" :unstyled="true" v-model="config.agent.privateKey" :autoResize="false" rows="6"  />
+										<span class="font-medium">
+											<Textarea placeholder="Unset" v-model="config.agent.privateKey" :autoResize="false" rows="6"  />
 										</span>
 								</Chip>
 							</div>

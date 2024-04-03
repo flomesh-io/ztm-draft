@@ -94,8 +94,11 @@ import TriStateCheckbox from 'primevue/tristatecheckbox';
 import VirtualScroller from 'primevue/virtualscroller';
 import BlockViewer from '@/components/BlockViewer.vue';
 import ChipList from '@/components/ChipList.vue';
+import Loading from '@/components/Loading.vue';
 
 export function useComponent(app){
+	
+	app.component('Loading', Loading);
 	app.component('BlockViewer', BlockViewer);
 	app.component('Accordion', Accordion);
 	app.component('AccordionTab', AccordionTab);

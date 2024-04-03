@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import PipyProxyService from '@/service/PipyProxyService';
-import MeshSelector from './common/MeshSelector.vue'
 import { useRoute } from 'vue-router'
 import { useToast } from "primevue/usetoast";
 import { isAdmin } from "@/service/common/authority-utils";
@@ -9,8 +8,24 @@ import store from "@/store";
 import _ from "lodash"
 
 const emits = defineEmits(['save']);
-
-const selected = ref(null);
+const props = defineProps({
+    mesh: {
+			type: String,
+			default: ''
+    },
+    endpoint: {
+			type: String,
+			default: ''
+    },
+    targetEndpoint: {
+			type: String,
+			default: ''
+    },
+    service: {
+			type: String,
+			default: ''
+    },
+});
 const route = useRoute();
 const toast = useToast();
 const pipyProxyService = new PipyProxyService();
@@ -19,39 +34,52 @@ const user = computed(() => {
 });
 const loading = ref(false);
 const config = ref({
-	name: "",
 	protocol: "tcp",
-	host:'127.0.0.1',
-	port:0
+	listen: {
+		ip:'127.0.0.1',
+		port:0,
+	},
+	target: {
+		mesh: props.mesh,
+		endpoint: props.targetEndpoint,
+		service: props.service,
+	}
 });
 const newConfig = () => {
 	config.value = {
-		name: "",
 		protocol: "tcp",
-		host:'127.0.0.1',
-		port:0
+		listen: {
+			ip:'127.0.0.1',
+			port:0,
+		},
+		target: {
+			mesh: props.mesh,
+			endpoint: props.targetEndpoint,
+			service: props.service,
+		}
 	}
 }
 
 const enabled = computed(() => {
-	return config.value.name.length>0 && selected.value && !!selected.value.agent?.id;
+	return config.value.listen?.port>0 && !!config.value.listen?.ip;
 });
-const select = (d) => {
-	selected.value = d;
-}
 const commit = () => {
-	pipyProxyService.createService({
-		mesh: selected.value.name,
-		ep: selected.value.agent?.id,
-		name: config.value.name,
+	const target = _.cloneDeep(config.value.target);
+	if(!target.endpoint){
+		delete target.endpoint;
+	}
+	pipyProxyService.createPort({
+		mesh: props.mesh,
+		ep: props.endpoint,
 		proto: config.value.protocol,
-		host: config.value.host,
-		port: config.value.port
+		ip: config.value.listen?.ip,
+		port: config.value.listen?.port,
+		body: { target }
 	})
 		.then(res => {
-			console.log('commit service:')
+			console.log('commit port:')
 			console.log(res)
-			if(!!res.name){
+			if(!!res.listen){
 				toast.add({ severity: 'success', summary:'Tips', detail: 'Create successfully.', life: 3000 });
 				emits("save", config.value);
 				newConfig();
@@ -63,6 +91,11 @@ const commit = () => {
 			console.log('Request Failed', err)
 		}); 
 }
+
+const cancel = () => {
+	newConfig();
+	emits("save", false);
+}
 onMounted(() => {
 });
 const home = ref({
@@ -71,12 +104,10 @@ const home = ref({
 </script>
 
 <template>
-	<div v-if="route.params?.id" style="padding-left: 0px;padding-top: 0;padding-right: 0;m">
-		<Breadcrumb :home="home" :model="[{label:route.params?.id}]" />
-	</div>
 	<div >
-		<BlockViewer text="Json" header="Create Service" containerClass="surface-section px-3 py-3 md:px-4 md:py-7 lg:px-5" >
+		<BlockViewer text="Json" header="Mapping Port" containerClass="surface-section px-3 py-3 md:px-4 lg:px-5" >
 			<template #actions>
+				<Button class="mr-2" label="Cancel" size="small" link @click="cancel"/>
 				<Button :disabled="!enabled" label="Save" aria-label="Submit" size="small" @click="commit"/>
 			</template>
 			<div v-if="loading" class="p-4">
@@ -97,8 +128,6 @@ const home = ref({
 			
 			<div class="surface-section">
 				<ul class="list-none p-0 m-0">
-					
-									
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
 							<div class="text-500 w-6 md:w-2 font-medium">Mesh</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
@@ -106,11 +135,8 @@ const home = ref({
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-globe"/>
 										</span>
-										<span class="font-medium">
-											<MeshSelector 
-												:full="true" 
-												innerClass="flex" 
-												@select="select"/>
+										<span class="font-medium ml-2">
+											{{decodeURI(config.target?.mesh)}}
 										</span>
 								</Chip>
 							</div>
@@ -123,7 +149,20 @@ const home = ref({
 											<i class="pi pi-bookmark"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											<InputText placeholder="Name" class="add-tag-input xl" :unstyled="true" v-model="config.name" type="text" />
+											{{config.target?.service}}
+										</span>
+								</Chip>
+							</div>
+					</li>
+					<li v-if="!!config.target?.endpoint" class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Provider EP</div>
+							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+								<Chip class="pl-0 pr-3 mr-2">
+								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-bookmark"/>
+										</span>
+								    <span class="ml-2 font-medium">
+											{{config.target?.endpoint}}
 										</span>
 								</Chip>
 							</div>
@@ -147,14 +186,14 @@ const home = ref({
 							</div>
 					</li>
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Host</div>
+							<div class="text-500 w-6 md:w-2 font-medium">IP</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
 								<Chip class="pl-0 pr-3 mr-2">
 								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-bookmark"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											<InputText placeholder="Name" class="add-tag-input xl" :unstyled="true" v-model="config.host" type="text" />
+											<InputText placeholder="Name" class="add-tag-input xl" :unstyled="true" v-model="config.listen.ip" type="text" />
 										</span>
 								</Chip>
 							</div>
@@ -167,7 +206,7 @@ const home = ref({
 											<i class="pi pi-sort"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											<InputNumber :useGrouping="false" :min="0" :max="65535" placeholder="0-65535" class="add-tag-input" :unstyled="true" v-model="config.port" type="text" />
+											<InputNumber :useGrouping="false" :min="0" :max="65535" placeholder="0-65535" class="add-tag-input" :unstyled="true" v-model="config.listen.port" type="text" />
 										</span>
 								</Chip>
 							</div>

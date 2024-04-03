@@ -1,26 +1,21 @@
+const menu = [
+	{
+			label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
+	},
+	{
+			label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/services'
+	},
+	{
+			label: 'Endpoints', icon: 'pi pi-fw pi-chart-scatter', route: '/mesh/endpoints'
+	},
+	{
+			label: 'Ports', icon: 'pi pi-fw pi-bullseye', route: '/mesh/ports'
+	},
+]
+
 const prodMenu = {
-	client: [
-		{
-				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
-		},
-		{
-				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/services'
-		},
-		{
-				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'
-		},
-	],
-	server: [
-		{
-				label: 'Meshes', icon: 'pi pi-fw pi-globe', route: '/mesh/list'
-		},
-		{
-				label: 'Services', icon: 'pi pi-fw pi-server', route: '/mesh/services'
-		},
-		{
-				label: 'Ports', icon: 'pi pi-fw pi-circle', route: '/mesh/list'
-		},
-	]
+	client: menu,
+	server: menu
 };
 
 		

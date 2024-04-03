@@ -80,7 +80,6 @@ const pipyPlay = async () => {
 		loaddata();
 	},300)
 }
-
 const startPipy = async () => {
 	await pausePipy();
 	localStorage.setItem("VITE_APP_API_PORT", config.value.port);

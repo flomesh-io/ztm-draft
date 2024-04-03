@@ -79,7 +79,6 @@ async function copyCode(event) {
 
 <style scoped lang="scss">
 .block-section {
-    margin-bottom: 4rem;
     overflow: hidden;
 }
 
