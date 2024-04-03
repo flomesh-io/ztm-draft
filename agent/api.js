@@ -90,20 +90,35 @@ function getEndpoint(mesh, id) {
 }
 
 function allServices(mesh, ep) {
-  return db.allServices()
+  if (ep) {
+    return db.allServices(mesh)
+  } else {
+    var agent = meshes[mesh].agent
+    var endpoints = [{ id: agent.id, name: agent.name }]
+    return db.allServices(mesh).map(s => Object.assign(s, { endpoints }))
+  }
 }
 
 function getService(mesh, ep, proto, name) {
-  return db.getService(proto, name)
+  if (ep) {
+    db.getService(mesh, proto, name)
+  } else {
+    var agent = meshes[mesh].agent
+    var endpoints = [{ id: agent.id, name: agent.name }]
+    return Object.assign(
+      db.getService(mesh, proto, name),
+      { endpoints }
+    )
+  }
 }
 
 function setService(mesh, ep, proto, name, service) {
-  db.setService(proto, name, service)
-  return db.getService(proto, name, service)
+  db.setService(mesh, proto, name, service)
+  return db.getService(mesh, proto, name, service)
 }
 
 function delService(mesh, ep, proto, name) {
-  db.delService(proto, name)
+  db.delService(mesh, proto, name)
 }
 
 function allUsers(mesh, ep, svc) {

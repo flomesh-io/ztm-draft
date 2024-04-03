@@ -40,7 +40,7 @@ var routes = Object.entries({
     },
 
     'POST': function () {
-      return notFound
+      return agentPublish
     },
   },
 
@@ -104,5 +104,15 @@ var agentSession = pipeline($=>$
     }
   ).to($=>$
 
+  )
+)
+
+var agentPublish = pipeline($=>$
+  .replaceMessage(
+    function (req) {
+      var list = JSON.decode(req.body)
+      println(list)
+      return new Message({ status: 201 })
+    }
   )
 )

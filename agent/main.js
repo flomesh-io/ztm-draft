@@ -111,11 +111,11 @@ var routes = Object.entries({
   // Service
   //   name: string
   //   protocol: string (tcp|udp)
-  //   endpoints: string[]
+  //   endpoints?: { id: string, name: string }[]
   //   isPublic: boolean
   //   isLocal: boolean
-  //   host: string? (only when isLocal == true)
-  //   port: number? (only when isLocal == true)
+  //   host?: string (only when isLocal == true)
+  //   port?: number (only when isLocal == true)
   //
 
   '/api/meshes/{mesh}/services': {

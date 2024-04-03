@@ -19,6 +19,7 @@ function open(pathname, reset) {
     `)
     db.exec(`
       CREATE TABLE services (
+        mesh TEXT NOT NULL,
         name TEXT NOT NULL,
         protocol TEXT NOT NULL,
         host TEXT NOT NULL,
@@ -94,6 +95,7 @@ function delMesh(name) {
 
 function recordToService(rec) {
   return {
+    mesh: rec.mesh,
     name: rec.name,
     protocol: rec.protocol,
     host: rec.host,
@@ -101,49 +103,62 @@ function recordToService(rec) {
   }
 }
 
-function allServices() {
-  return (
-    db.sql('SELECT * FROM services')
-      .exec()
-      .map(recordToService)
-  )
+function allServices(mesh) {
+  if (mesh) {
+    return (
+      db.sql('SELECT * FROM services WHERE mesh = ?')
+        .bind(1, mesh)
+        .exec()
+        .map(recordToService)
+    )
+  } else {
+    return (
+      db.sql('SELECT * FROM services')
+        .exec()
+        .map(recordToService)
+    )
+  }
 }
 
-function getService(proto, name) {
+function getService(mesh, proto, name) {
   return (
-    db.sql('SELECT * FROM services WHERE name = ? AND protocol = ?')
-      .bind(1, name)
-      .bind(2, proto)
+    db.sql('SELECT * FROM services WHERE mesh = ? AND name = ? AND protocol = ?')
+      .bind(1, mesh)
+      .bind(2, name)
+      .bind(3, proto)
       .exec()
       .slice(0, 1)
       .map(recordToService)[0]
   )
 }
 
-function setService(proto, name, service) {
-  var old = getService(proto, name)
+function setService(mesh, proto, name, service) {
+  var old = getService(mesh, proto, name)
   if (old) {
     service = { ...old, ...service }
-    db.sql('UPDATE services SET host = ?, port = ? WHERE name = ? AND protocol = ?')
+    db.sql('UPDATE services SET host = ?, port = ? WHERE mesh = ? AND name = ? AND protocol = ?')
       .bind(1, service.host)
       .bind(2, service.port)
-      .bind(3, name)
-      .bind(4, proto)
+      .bind(3, mesh)
+      .bind(4, name)
+      .bind(5, proto)
       .exec()
   } else {
-    db.sql('INSERT INTO services(name, protocol, host, port) VALUES(?, ?, ?, ?)')
-      .bind(1, name)
-      .bind(2, proto)
-      .bind(3, service.host)
-      .bind(4, service.port)
+    db.sql('INSERT INTO services(mesh, name, protocol, host, port) VALUES(?, ?, ?, ?, ?)')
+      .bind(1, mesh)
+      .bind(2, name)
+      .bind(3, proto)
+      .bind(4, service.host)
+      .bind(5, service.port)
       .exec()
   }
 }
 
-function delService(proto, name) {
-  db.sql('DELETE FROM services WHERE name = ? AND protocol = ?')
-    .bind(1, name)
-    .bind(2, proto)
+function delService(mesh, proto, name) {
+  db.sql('DELETE FROM services WHERE mesh = ? AND name = ? AND protocol = ?')
+    .bind(1, mesh)
+    .bind(2, name)
+    .bind(3, proto)
     .exec()
 }
 

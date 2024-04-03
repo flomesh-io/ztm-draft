@@ -52,6 +52,65 @@ export default function (agent, bootstraps) {
     hubs.forEach(h => h.heartbeat())
     new Timeout(15).wait().then(heartbeat)
   }
+
+  function discoverEndpoints() {
+    return hubs[0].discoverEndpoints()
+  }
+
+  function discoverServices() {
+    return hubs[0].discoverServices()
+  }
+
+  function publishService(service) {
+    var protocol = service.protocol
+    var name = service.name
+    var host = service.host
+    var port = service.port
+    var old = services.find(s => s.protocol == protocol && s.name === name)
+    if (old) {
+      old.host = host
+      old.port = port
+    } else {
+      services.push({
+        protocol,
+        name,
+        host,
+        port,
+      })
+    }
+    updateServiceList()
+  }
+
+  function deleteService(protocol, name) {
+    var old = services.find(s => s.protocol == protocol && s.name === name)
+    if (old) {
+      service.splice(services.indexOf(old), 1)
+      updateServiceList()
+    }
+  }
+
+  function updateServiceList() {
+    var list = services.map(({ name, protocol }) => ({ name, protocol }))
+    hubs.forEach(hub => hub.updateServiceList(list))
+  }
+
+  function status() {
+    return hubs[0].status()
+  }
+
+  function leave() {
+    hubs.forEach(hub => hub.leave())
+  }
+
+  return {
+    agent,
+    discoverEndpoints,
+    discoverServices,
+    publishService,
+    deleteService,
+    status,
+    leave,
+  }
 }
 
 function Hub(
@@ -106,25 +165,24 @@ function Hub(
 
   var serviceListUpdate = null
 
-  function updateServiceList() {
-    var isUpdating = Boolean(serviceListUpdate)
+  function updateServiceList(list) {
+    var isSending = Boolean(serviceListUpdate)
+    serviceListUpdate = list
     serviceListUpdate = new Message(
       {
         method: 'POST',
         path: `/api/services`,
       },
-      JSON.encode(Object.values(services).map(
-        ({ name, protocol }) => ({ name, protocol })
-      ))
+      JSON.encode(list)
     )
-    if (!isUpdating) sendServiceList()
+    if (!isSending) sendServiceList()
   }
 
   function sendServiceList() {
     if (serviceListUpdate) {
       requestHub.spawn(serviceListUpdate).then(
         function (res) {
-          if (res && res.head.status === 200) {
+          if (res && res.head.status === 201) {
             serviceListUpdate = null
           } else {
             new Timeout(5).wait().then(sendServiceList)
@@ -171,16 +229,6 @@ function Hub(
     )
   }
 
-  function publishService(service) {
-    services[service.name] = service
-    updateServiceList()
-  }
-
-  function deleteService(name) {
-    delete services[name]
-    updateServiceList()
-  }
-
   function status() {
     return 'OK'
   }
@@ -190,10 +238,9 @@ function Hub(
 
   return {
     heartbeat,
+    updateServiceList,
     discoverEndpoints,
     discoverServices,
-    publishService,
-    deleteService,
     status,
     leave,
   }
