@@ -29,8 +29,10 @@ const isLogined = computed(() => {
 });
 
 const placeholder = computed(() => {
-	if(!meshes.value || meshes.value.length ==0){
-		return "No Mesh";
+	if(!playing){
+		return "Pipy off.";
+	}else if(!meshes.value || meshes.value.length ==0){
+		return "First, join a Mesh.";
 	} else if(meshes.value.length == 1){
 		return "1 Mesh Joined.";
 	} else {
@@ -226,7 +228,7 @@ const restart = ref(false);
 				</Button>
 			</div>
 			<div class="flex-item">
-				<Button :disabled="!isLogined" v-tooltip="'Find Mesh'" class="pointer" severity="help" text rounded aria-label="Filter" @click="goConsole" >
+				<Button :disabled="!!playing" v-tooltip="'Find Mesh'" class="pointer" severity="help" text rounded aria-label="Filter" @click="goConsole" >
 					<i class="pi pi-search " />
 				</Button>
 			</div>

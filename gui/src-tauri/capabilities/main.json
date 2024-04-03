@@ -18,6 +18,8 @@
     "window:allow-set-resizable",
     "webview:allow-set-webview-size",
     "webview:allow-internal-toggle-devtools",
+    "cli:default",
+    "cli:allow-cli-matches",
     {
       "identifier": "shell:allow-execute",
       "allow": [
