@@ -34,6 +34,16 @@
           "sidecar": false
         },
         {
+          "name": "echo",
+          "cmd": "echo",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        },
+        {
           "name": "pipy",
           "cmd": "pipy",
           "args": [
@@ -46,6 +56,11 @@
         {
           "name": "pwd",
           "cmd": "pwd",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
           "sidecar": false
         },
         {

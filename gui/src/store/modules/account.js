@@ -10,6 +10,7 @@ export default {
 		pipyVersion: '',
 		client: null,
 		pid: null,
+		child: null,
 		collapsed: true,
   },
   getters: {
@@ -18,6 +19,9 @@ export default {
     },
     pipyRunning: (state) => {
       return state.pipyRunning;
+    },
+    child: (state) => {
+      return state.child;
     },
     client: (state) => {
       return state.client;
@@ -71,6 +75,9 @@ export default {
     },
     setClient(state, client) {
       state.client = client;
+    },
+    setChild(state, child) {
+      state.child = child;
     },
     setPipyVersion(state, pipyVersion) {
       state.pipyVersion = pipyVersion;

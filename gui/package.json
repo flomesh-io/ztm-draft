@@ -5,7 +5,7 @@
 	"private": true,
 	"license": "MIT",
 	"scripts": {
-		"copy-code": "cp -r ../agent ./",
+		"copy-code": "cp -r ../agent ./src-tauri",
 		"dev": "npm run copy-code && vite",
 		"build": "npm run copy-code && vite build",
 		"preview": "vite preview",

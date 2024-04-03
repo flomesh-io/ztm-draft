@@ -10,24 +10,34 @@ import HoverXeyeSvg from "@/assets/img/logo.png";
 import PipySvg from "@/assets/img/pipy-white.png";
 import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
+import ShellService from '@/service/ShellService';
 import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
-import { Command, Child } from '@tauri-apps/plugin-shell';
 import { hostname, platform, locale } from '@tauri-apps/plugin-os';
 import { invoke } from '@tauri-apps/api/core';
 import { getPort, getDB } from '@/service/common/request';
+import { resourceDir } from '@tauri-apps/api/path';
 
+const playing = ref(false);
+const pipyProxyService = new PipyProxyService();
+const shellService = new ShellService();
 const confirm = useConfirm();
 const emits = defineEmits(['collapse']);
-
 const router = useRouter();
-const pipyProxyService = new PipyProxyService();
 const meshes = ref([]);
+const configOpen = ref(false);
+const logoHover = ref(false);
+const config = ref({
+	port: getPort(),
+	db: getDB()
+});
 
 const isLogined = computed(() => {
 	return store.getters['account/user']
 });
-
+const user = computed(() => {
+	return store.getters['account/user'];
+});
 const placeholder = computed(() => {
 	if(!playing.value){
 		return "Pipy off.";
@@ -39,15 +49,10 @@ const placeholder = computed(() => {
 		return `${meshes.value.length} Mesh Joined.`;
 	}
 });
-const user = computed(() => {
-	return store.getters['account/user'];
-});
 onMounted(() => {
 	pipyInit();
 });
 
-onBeforeUnmount(() => {
-});
 const loaddata = () => {
 	pipyProxyService.getMeshes()
 		.then(res => {
@@ -56,9 +61,6 @@ const loaddata = () => {
 		})
 		.catch(err => console.log('Request Failed', err)); 
 }
-const pipyRun = ref(false);
-const pipyVersion = ref('');
-const playing = ref(false);
 const play = () => {
 	pipyPlay();
 }
@@ -68,10 +70,7 @@ const pipyInit = async (pause) => {
 	store.commit('account/setUser', {
 		id: hostname
 	});
-	// let pid = store.getters['account/pid'];
-	// if(!pid){
-		await startPipy();
-	// }
+	await startPipy();
 	setTimeout(() => {
 		loaddata();
 	},300)
@@ -83,46 +82,15 @@ const pipyPlay = async () => {
 	},300)
 }
 const startPipy = async () => {
-	await pausePipy();
-	localStorage.setItem("VITE_APP_API_PORT", config.value.port);
-	localStorage.setItem("VITE_APP_API_DB", config.value.db);
-	const path = import.meta.env.VITE_APP_API_PATH;
-	const log = import.meta.env.VITE_APP_API_LOG;
-	//--skip-unknown-arguments 
-	//--listen=${config.value.port} --database=${config.value.db} --log-file=${log}
-	//pipy ../agent/main.js --log-file=../ztm_log.txt --skip-unknown-arguments --listen=6666 --database=~/ztm.db
-	const args = [
-		path,
-		`--log-file=${log}`,
-		"--skip-unknown-arguments",
-		`--listen=${config.value.port}`,
-		`--database=${config.value.db}`,
-	];
-	console.log(`[starting pipy:${args}]`);
-	const command = Command.create('pipy', args);
-	// const command = Command.create('pwd');
-	command.on('close', data => {
-		console.log(data);
-	  console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
-	});
-	// command.stdout.on('data', line => console.log(`command stdout: "${line}"`));
-	// command.stderr.on('data', line => console.log(`command stderr: "${line}"`));
-	command.on('error', error => console.error(`command error: "${error}"`));
-	let child = await command.spawn();
-	store.commit('account/setPid', child.pid);
+	await pause();
+	await shellService.startPipy(config.value.port, config.value.db);
 }
-const pausePipy = async () => {
-	let pid = store.getters['account/pid'];
-	if(!!pid){
-		const child = new Child(pid)
-		child.kill();
-		store.commit('account/setPid', null);
-	}
+const pause = async () => {
+	await shellService.pausePipy();
 	playing.value = false;
-	console.log('[paused pipy]');
 }
 const clickPause = () => {
-	pausePipy();
+	pause();
 }
 
 const logout = () => {
@@ -140,12 +108,6 @@ const logout = () => {
         }
     });
 };
-const configOpen = ref(false);
-const logoHover = ref(false);
-const config = ref({
-	port: getPort(),
-	db: getDB()
-});
 const clickCollapse = (path) => {
 	router.push(path)
 }

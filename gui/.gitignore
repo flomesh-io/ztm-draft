@@ -18,6 +18,7 @@ coverage
 *.local
 /release
 /agent
+/src-tauri/agent
 /public/agent
 /public/log
 /cypress/videos/

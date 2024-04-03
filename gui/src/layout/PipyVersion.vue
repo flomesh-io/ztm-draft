@@ -2,35 +2,26 @@
 import { ref, computed, onMounted } from 'vue';
 import store from "@/store";
 import PipySvg from "@/assets/img/pipy-white.png";
-import { Command } from '@tauri-apps/plugin-shell';
+import ShellService from '@/service/ShellService';
 
-onMounted(() => {
-	if(!pipyVersion.value){
-		takePipyVersion();
-	}
-});
-
+const shellService = new ShellService();
+const restart = ref(false);
 const pipyVersion = computed(() => {
 	return store.getters['account/pipyVersion']
 });
-const pipyRun = ref(false);
-const restart = ref(false);
-const takePipyVersion = async () => {
-	let result = await Command.create('pipy', ['-v']).execute();
-	if(result?.code == 0){
-		const _v = result?.stdout.split("\n")[0].split(":")[1].trim();
-		store.commit('account/setPipyVersion', _v);
-		pipyRun.value = true;
+
+onMounted(() => {
+	if(!pipyVersion.value){
+		shellService.takePipyVersion();
 	}
-	console.log(result);
-}
+});
 const restartPipy = () => {
 	restart.value = true;
 	store.commit('account/setPipyVersion', '');
 	setTimeout(()=>{
 		restart.value = false;
 	},1000);
-	takePipyVersion();
+	shellService.takePipyVersion();
 }
 
 </script>
