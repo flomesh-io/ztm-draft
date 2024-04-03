@@ -24,38 +24,8 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "sudo pipy",
-          "cmd": "sudo pipy",
-          "args": [
-            {
-              "validator": ".+"
-            }
-          ],
-          "sidecar": false
-        },
-        {
-          "name": "echo",
-          "cmd": "echo",
-          "args": [
-            {
-              "validator": ".+"
-            }
-          ],
-          "sidecar": false
-        },
-        {
           "name": "pipy",
           "cmd": "pipy",
-          "args": [
-            {
-              "validator": ".+"
-            }
-          ],
-          "sidecar": false
-        },
-        {
-          "name": "pwd",
-          "cmd": "pwd",
           "args": [
             {
               "validator": ".+"
