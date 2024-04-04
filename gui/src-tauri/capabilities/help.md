@@ -1,3 +1,34 @@
+# Platform
+linux、macos、ios、freebsd、dragonfly、netbsd、openbsd、solaris、android、windows
+
+# Path Vars
+$AUDIO, 
+$CACHE, 
+$CONFIG, 
+$DATA, 
+$LOCALDATA, 
+$DESKTOP, 
+$DOCUMENT, 
+$DOWNLOAD, 
+$EXE, 
+$FONT, 
+$HOME, 
+$PICTURE, 
+$PUBLIC, 
+$RUNTIME, 
+$TEMPLATE, 
+$VIDEO, 
+$RESOURCE, 
+$APP, 
+$LOG, 
+$TEMP, 
+$APPCONFIG, 
+$APPDATA, 
+$APPLOCALDATA, 
+$APPCACHE, 
+$APPLOG.
+
+# Permission Scope
 app:default
 app:allow-app-hide
 app:allow-app-show

@@ -12,16 +12,9 @@ export default class ShellService {
 	async getPipy () {
 		// const isDev = import.meta.env.DEV;
 		// const plm = await platform();
+		// linux、macos、ios、freebsd、dragonfly、netbsd、openbsd、solaris、android、windows
 		// const resourceDirPath = await resourceDir();
 		///Users/lindongchen/Documents/HBuilderProjects/ztm/gui/src-tauri/target/debug/bin/macos/pipy
-		// E.g. for the external binary "pipy", Tauri looks for:
-		// ﻿
-		// - "pipy-x86_64-pc-windows-msvc.exe" for Windows
-		// - "pipy-x86_64-apple-darwin" for macOS
-		// - "pipy-x86_64-unknown-linux-gnu" for Linux
-		/*
-		$AUDIO, $CACHE, $CONFIG, $DATA, $LOCALDATA, $DESKTOP, $DOCUMENT, $DOWNLOAD, $EXE, $FONT, $HOME, $PICTURE, $PUBLIC, $RUNTIME, $TEMPLATE, $VIDEO, $RESOURCE, $APP, $LOG, $TEMP, $APPCONFIG, $APPDATA, $APPLOCALDATA, $APPCACHE, $APPLOG.
-		*/
 		return `bin/pipy`;
 	}
 	async takePipyVersion () {
@@ -34,7 +27,6 @@ export default class ShellService {
 		}
 	}
 	async startPipy (port, reset){
-		//linux、macos、ios、freebsd、dragonfly、netbsd、openbsd、solaris、android、windows
 		await this.pausePipy();
 		const resourceDirPath = await resourceDir();
 		localStorage.setItem("VITE_APP_API_PORT", port);
