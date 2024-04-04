@@ -24,8 +24,27 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "pipy",
-          "cmd": "pipy",
+          "name": "eval",
+          "cmd": "eval",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
+        },
+        {
+          "name": "bin/pipy",
+          "args": [
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": true
+        },
+        {
+          "name": "cd",
+          "cmd": "cd",
           "args": [
             {
               "validator": ".+"

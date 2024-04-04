@@ -18,8 +18,8 @@ const props = defineProps({
 			default: ''
     },
     targetEndpoint: {
-			type: String,
-			default: ''
+			type: Object,
+			default: () => {}
     },
     service: {
 			type: String,
@@ -41,7 +41,7 @@ const config = ref({
 	},
 	target: {
 		mesh: props.mesh,
-		endpoint: props.targetEndpoint,
+		endpoint: props.targetEndpoint?.id,
 		service: props.service,
 	}
 });
@@ -54,7 +54,7 @@ const newConfig = () => {
 		},
 		target: {
 			mesh: props.mesh,
-			endpoint: props.targetEndpoint,
+			endpoint: props.targetEndpoint?.id,
 			service: props.service,
 		}
 	}
@@ -68,16 +68,18 @@ const commit = () => {
 	if(!target.endpoint){
 		delete target.endpoint;
 	}
-	pipyProxyService.createPort({
+	const d = {
 		mesh: props.mesh,
 		ep: props.endpoint,
 		proto: config.value.protocol,
 		ip: config.value.listen?.ip,
 		port: config.value.listen?.port,
 		body: { target }
-	})
+	};
+	console.log('commit port:')
+	console.log(d)
+	pipyProxyService.createPort(d)
 		.then(res => {
-			console.log('commit port:')
 			console.log(res)
 			if(!!res.listen){
 				toast.add({ severity: 'success', summary:'Tips', detail: 'Create successfully.', life: 3000 });
@@ -110,21 +112,6 @@ const home = ref({
 				<Button class="mr-2" label="Cancel" size="small" link @click="cancel"/>
 				<Button :disabled="!enabled" label="Save" aria-label="Submit" size="small" @click="commit"/>
 			</template>
-			<div v-if="loading" class="p-4">
-			    <div class="flex mb-3">
-			        <Skeleton shape="circle" size="4rem" class="mr-2"></Skeleton>
-			        <div>
-			            <Skeleton width="10rem" class="mb-2"></Skeleton>
-			            <Skeleton width="5rem" class="mb-2"></Skeleton>
-			            <Skeleton height=".5rem"></Skeleton>
-			        </div>
-			    </div>
-			    <Skeleton width="100%" height="150px"></Skeleton>
-			    <div class="flex justify-content-between mt-3">
-			        <Skeleton width="4rem" height="2rem"></Skeleton>
-			        <Skeleton width="4rem" height="2rem"></Skeleton>
-			    </div>
-			</div>
 			
 			<div class="surface-section">
 				<ul class="list-none p-0 m-0">
@@ -154,15 +141,15 @@ const home = ref({
 								</Chip>
 							</div>
 					</li>
-					<li v-if="!!config.target?.endpoint" class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Provider EP</div>
+					<li v-if="!!targetEndpoint?.id" class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Endpoint</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
 								<Chip class="pl-0 pr-3 mr-2">
 								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-bookmark"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											{{config.target?.endpoint}}
+											{{targetEndpoint?.name || targetEndpoint?.id}}
 										</span>
 								</Chip>
 							</div>

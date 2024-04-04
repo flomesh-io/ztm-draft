@@ -160,7 +160,7 @@ const savePort = () => {
 														<div class="text-900 font-medium text-xl">{{decodeURI(service.name)}}</div>
 											 </div>
 											 <div class="flex">
-												 <div v-tooltip="'Mapping Port'" @click="mappingPort({service: service.name,ep:selectedMesh.value.agent?.id})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+												 <div v-tooltip="'Mapping Port'" @click="mappingPort({service: service.name,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-circle text-primary-500 text-xl"></i>
 												 </div>
 												 <div v-tooltip="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">

@@ -15,7 +15,7 @@ import { checkAuthorization } from "@/service/common/request";
 import { isAdmin } from "@/service/common/authority-utils";
 import { hostname, platform, locale } from '@tauri-apps/plugin-os';
 import { invoke } from '@tauri-apps/api/core';
-import { getPort, getDB } from '@/service/common/request';
+import { getPort } from '@/service/common/request';
 import { resourceDir } from '@tauri-apps/api/path';
 
 const playing = ref(false);
@@ -27,9 +27,9 @@ const router = useRouter();
 const meshes = ref([]);
 const configOpen = ref(false);
 const logoHover = ref(false);
+const db = ref('');
 const config = ref({
 	port: getPort(),
-	db: getDB()
 });
 
 const isLogined = computed(() => {
@@ -66,6 +66,7 @@ const play = () => {
 }
 
 const pipyInit = async (pause) => {
+	db.value = await shellService.getDB();
 	const hostname = await invoke("plugin:os|hostname");
 	store.commit('account/setUser', {
 		id: hostname
@@ -83,7 +84,7 @@ const pipyPlay = async () => {
 }
 const startPipy = async () => {
 	await pause();
-	await shellService.startPipy(config.value.port, config.value.db);
+	await shellService.startPipy(config.value.port);
 }
 const pause = async () => {
 	await shellService.pausePipy();
@@ -115,7 +116,20 @@ const goLogin = () => {
 	router.push('/login');
 }
 const goConsole = () => {
-	router.push('/mesh/list');
+	router.push('/mesh');
+}
+const reset = () => {
+	confirm.require({
+			message: 'Are you sure you want to reset pipy db?',
+			header: 'Factory settings',
+			icon: 'pi pi-exclamation-triangle',
+			accept: () => {
+				shellService.startPipy(config.value.port, true);
+			},
+			reject: () => {
+					
+			}
+	});
 }
 const restart = ref(false);
 </script>
@@ -226,14 +240,14 @@ const restart = ref(false);
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
 							<div class="font-medium font-bold w-3">DB</div>
-							<div >
-									<InputText class="text-left" :useGrouping="false" style="width: 200px;" placeholder="Pipy db path" v-model="config.db" />
+							<div v-tooltip="db" style="white-space: nowrap;text-overflow: ellipsis;overflow: hidden;width: 200px;">
+								{{db}}
 							</div>
 					</li>
 					<li v-if="!!isLogined" class="flex align-items-center py-3 px-2 surface-border flex-wrap">
-							<div class="font-medium font-bold w-3">More</div>
+							<div class="font-medium font-bold w-3">Reset</div>
 							<div >
-								<Button  class="w-12rem" @click="goConsole">Go Console <i class="pi pi-arrow-right ml-2"></i></Button>
+								<Button  class="w-12rem" @click="reset">Factory settings <i class="pi pi-undo ml-2"></i></Button>
 							</div>
 					</li>
 				</ul>

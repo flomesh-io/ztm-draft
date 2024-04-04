@@ -139,15 +139,8 @@ const active = ref(0);
 														</span>
 												</Chip>
 											</div>
-											<div v-if="port.target?.endpoint">
-												<Chip class="pl-0 pr-3 mr-2">
-														<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-															<i class="pi pi-circle-fill"/>
-														</span>
-														<span class="font-medium ml-2">
-															EP: {{port.target?.endpoint}}
-														</span>
-												</Chip>
+											<div class="text-gray-500" v-if="port.target?.endpoint">
+												<Tag><span class="status-point run ml-2 mr-3"></span>EP: {{port.target?.endpoint}}</Tag>
 											</div>
 										</Fieldset>
 							 </div>

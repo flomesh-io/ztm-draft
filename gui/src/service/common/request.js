@@ -25,11 +25,6 @@ const getPort = () => {
 	const DEFAULT_VITE_APP_API_PORT = import.meta.env.VITE_APP_API_PORT;
 	return VITE_APP_API_PORT || DEFAULT_VITE_APP_API_PORT;
 }
-const getDB = () => {
-	const VITE_APP_API_DB = localStorage.getItem("VITE_APP_API_DB");
-	const DEFAULT_VITE_APP_API_DB = import.meta.env.VITE_APP_API_DB;
-	return VITE_APP_API_DB || DEFAULT_VITE_APP_API_DB;
-}
 
 async function request(url, method, params, config) {
   switch (method) {
@@ -163,5 +158,4 @@ export {
   parseUrlParams,
   getHeaders,
 	getPort,
-	getDB
 };
