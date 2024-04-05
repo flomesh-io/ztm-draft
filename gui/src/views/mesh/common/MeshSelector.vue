@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted,onActivated, computed } from "vue";
 import PipyProxyService from '@/service/PipyProxyService';
+import store from "@/store";
 const pipyProxyService = new PipyProxyService();
-const meshes = ref([]);
 const selected = ref(null);
 const props = defineProps({
 	full: {
@@ -15,23 +15,17 @@ const props = defineProps({
 	},
 	
 });
-const emits = defineEmits(['select','load']);
-onActivated(() => {
+const emits = defineEmits(['select']);
+onMounted(() => {
 	loaddata();
 });
 
+const meshes = computed(() => {
+	return store.getters['account/meshes'] || []
+});
 const loaddata = () => {
-	pipyProxyService.getMeshes()
-		.then(res => {
-			meshes.value = res || [];
-			emits('load',res);
-			meshes.value.forEach((mesh) => {
-				mesh.value = mesh.name
-			});
-			selected.value = meshes.value[0];
-			emits('select',selected.value)
-		})
-		.catch(err => console.log('Request Failed', err)); 
+	selected.value = meshes.value[0];
+	emits('select',selected.value);
 }
 
 

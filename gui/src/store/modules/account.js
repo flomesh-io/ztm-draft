@@ -12,6 +12,7 @@ export default {
 		pid: null,
 		child: null,
 		collapsed: true,
+		meshes:[],
   },
   getters: {
     pid: (state) => {
@@ -19,6 +20,9 @@ export default {
     },
     pipyRunning: (state) => {
       return state.pipyRunning;
+    },
+    meshes: (state) => {
+      return state.meshes;
     },
     child: (state) => {
       return state.child;
@@ -78,6 +82,9 @@ export default {
     },
     setChild(state, child) {
       state.child = child;
+    },
+    setMeshes(state, meshes) {
+      state.meshes = meshes;
     },
     setPipyVersion(state, pipyVersion) {
       state.pipyVersion = pipyVersion;

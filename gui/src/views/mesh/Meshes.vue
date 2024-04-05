@@ -23,6 +23,7 @@ const loaddata = () => {
 			console.log(res);
 			loading.value = false;
 			meshes.value = res;
+			store.commit('account/setMeshes', res);
 		})
 		.catch(err => console.log('Request Failed', err)); 
 }
@@ -99,7 +100,7 @@ const join = () => {
 			</TabPanel>
 	    <TabPanel >
 				<template #header>
-					<i class="pi pi-plus mr-2" /> Join
+					<i class="pi pi-angle-double-up mr-2" /> Join
 				</template>
 	      <MeshJoin @save="join"/>
 	    </TabPanel>

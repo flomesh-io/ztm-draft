@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted,onActivated, computed } from "vue";
 import { useRouter } from 'vue-router'
 import PipyProxyService from '@/service/PipyProxyService';
 import ServiceCreate from './ServiceCreate.vue'
@@ -13,18 +13,21 @@ const pipyProxyService = new PipyProxyService();
 const services = ref([]);
 const status = ref({});
 const scopeType = ref('All');
-
-const meshes = ref([]);
+const portMap = ref({});
+const meshes = computed(() => {
+	return store.getters['account/meshes']
+});
 const selectedMesh = ref(null);
 const loading = ref(false);
-const load = (d) => {
-	meshes.value = d;
-}
 const select = (selected) => {
 	selectedMesh.value = selected;
 	getServices();
+	getPorts();
 }
-
+onActivated(()=>{
+	getServices();
+	getPorts();
+})
 const deleteService = (service) => {
 	confirm.require({
 	    message: `Are you sure to delete ${service.name} service?`,
@@ -64,6 +67,40 @@ const getServices = () => {
 	}
 }
 
+const getPorts = () => {
+	portMap.value = {}
+	pipyProxyService.getPorts({
+		mesh:selectedMesh.value?.name,
+		ep:selectedMesh.value.agent?.id
+	})
+		.then(res => {
+			res.forEach((port)=>{
+				portMap.value[`${port.target?.service}-${port.target?.endpoint||''}`] = `${port.listen.ip}:${port.listen.port}:${port.protocol}`;
+			})
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
+
+const portInfo = computed(() => {
+	return (svc,ep) => {
+		const postAry = [];
+		if(portMap.value[`${svc}-${ep}`]){
+			postAry.push(portMap.value[`${svc}-${ep}`])
+		}  
+		if(portMap.value[`${svc}-`]){
+			postAry.push(portMap.value[`${svc}-`])
+		}  
+		return postAry.join("\n");
+	}
+});
+
+
+const portInfobyLb = computed(() => {
+	return (svc) => {
+		return portMap.value[`${svc}-`];
+	}
+});
+
 const servicesFilter = computed(() => {
 	return services.value.filter((svc)=>{
 		return (typing.value == '' || typing.value == svc.name || typing.value == svc.host) 
@@ -100,15 +137,16 @@ const mappingPort = ({service, ep}) => {
 }
 const savePort = () => {
 	visiblePort.value = false;
+	getPorts();
 }
 </script>
 
 <template>
 	<Card class="nopd ml-3 mr-3 mt-3">
 		<template #content>
-			<InputGroup class="search-bar" v-if="active!=2">
+			<InputGroup class="search-bar" v-show="active!=2">
 				<MeshSelector 
-					v-if="active!=2" 
+					v-show="active!=2" 
 					:full="false" 
 					innerClass="transparent" 
 					@load="load" 
@@ -160,7 +198,14 @@ const savePort = () => {
 														<div class="text-900 font-medium text-xl">{{decodeURI(service.name)}}</div>
 											 </div>
 											 <div class="flex">
-												 <div v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+												 <div 
+													 v-if="!!portInfo(service.name,selectedMesh.agent?.id)" 
+													 v-tooltip="'Port:'+portInfo(service.name,selectedMesh.agent?.id)" 
+													 class="pointer flex align-items-center justify-content-center bg-green-100 border-round mr-2" 
+													 style="width: 2.5rem; height: 2.5rem">
+														 <i class="pi pi-check-circle text-green-500 text-xl"></i>
+												 </div>
+												 <div v-else v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-circle text-primary-500 text-xl"></i>
 												 </div>
 												 <div v-tooltip="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
@@ -187,7 +232,7 @@ const savePort = () => {
 		<TabPanel>
 			<template #header>
 				<div @click="loaddata">
-					<i class="pi pi-sitemap mr-2" />Services Lb
+					<i class="pi pi-sitemap mr-2" />Services LB
 				</div>
 			</template>
 			<div class="text-center">
@@ -201,8 +246,15 @@ const savePort = () => {
 													<span class="block text-500 font-medium mb-3"><i class="pi pi-server text-gray-500"></i> {{lb[0].name}}</span>
 											 </div>
 											 <div class="flex">
-												 <div v-tooltip="'Mapping Port'"  @click="mappingPort({service: lb[0]})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
-														 <i class="pi pi-bullseye text-primary-500 text-xl"></i>
+												 <div 
+													 v-if="!!portInfobyLb(lb[0].name)" 
+													 v-tooltip="'Port:'+portInfobyLb(lb[0].name)" 
+													 class="pointer flex align-items-center justify-content-center bg-green-100 border-round mr-2" 
+													 style="width: 2.5rem; height: 2.5rem">
+														 <i class="pi pi-check-circle text-green-500 text-xl"></i>
+												 </div>
+												 <div v-else v-tooltip="'Mapping Port'"  @click="mappingPort({service: lb[0]})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+														 <i class="pi pi-circle text-primary-500 text-xl"></i>
 												 </div>
 											 </div>
 	<!-- 	       								<div v-tooltip="'Revoke'" @click="changeStatus(service, 3)" v-else-if="service.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">

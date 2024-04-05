@@ -1,22 +1,29 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted,onActivated, computed } from "vue";
 import { useRouter } from 'vue-router'
 import PipyProxyService from '@/service/PipyProxyService';
 import MeshSelector from './common/MeshSelector.vue'
-const router = useRouter();
 import store from "@/store";
 import { useConfirm } from "primevue/useconfirm";
 
+const router = useRouter();
 const pipyProxyService = new PipyProxyService();
 const confirm = useConfirm();
 const loading = ref(false);
 const status = ref({});
 const ports = ref([])
-const meshes = ref([]);
 const selectedMesh = ref(null);
+
+const meshes = computed(() => {
+	return store.getters['account/meshes']
+});
+
 const load = (d) => {
 	meshes.value = d;
 }
+onActivated(()=>{
+	getPorts();
+})
 const select = (selected) => {
 	selectedMesh.value = selected;
 	getPorts();
