@@ -88,7 +88,7 @@ const expand = (node) => {
 		<TabPanel>
 			<template #header>
 				<div @click="getEndpoints">
-					<i class="pi pi-bullseye mr-2"/> Endpoints
+					<i class="pi pi-chart-scatter mr-2"/> Endpoints
 				</div>
 			</template>
 			<div class="text-center">

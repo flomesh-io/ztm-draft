@@ -160,7 +160,7 @@ const savePort = () => {
 														<div class="text-900 font-medium text-xl">{{decodeURI(service.name)}}</div>
 											 </div>
 											 <div class="flex">
-												 <div v-tooltip="'Mapping Port'" @click="mappingPort({service: service.name,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+												 <div v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-circle text-primary-500 text-xl"></i>
 												 </div>
 												 <div v-tooltip="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
@@ -201,7 +201,7 @@ const savePort = () => {
 													<span class="block text-500 font-medium mb-3"><i class="pi pi-server text-gray-500"></i> {{lb[0].name}}</span>
 											 </div>
 											 <div class="flex">
-												 <div v-tooltip="'Mapping Port'"  @click="mappingPort({service: lb[0].name})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+												 <div v-tooltip="'Mapping Port'"  @click="mappingPort({service: lb[0]})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-bullseye text-primary-500 text-xl"></i>
 												 </div>
 											 </div>
@@ -247,7 +247,13 @@ const savePort = () => {
 		modal 
 		:style="{ width: '100%', maxWidth: '500px', padding: 0 }"
 		>
-		<PortMaping @save="savePort" :mesh="selectedMesh?.name" :endpoint="selectedMesh.agent?.id" :service="selectedService?.service" :targetEndpoint="selectedService?.ep"/>
+		<PortMaping 
+			@save="savePort" 
+			:mesh="selectedMesh?.name" 
+			:endpoint="selectedMesh.agent?.id" 
+			:service="selectedService?.service?.name" 
+			:servicePort="selectedService?.service?.port"
+			:targetEndpoint="selectedService?.ep"/>
 	</Dialog>
 </template>
 

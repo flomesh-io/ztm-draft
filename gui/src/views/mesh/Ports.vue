@@ -62,7 +62,7 @@ const getPorts = () => {
 				ports.value = res || [];
 			})
 			.catch(err => console.log('Request Failed', err)); 
-	},1000);
+	},600);
 }
 const portsFilter = computed(() => {
 	return ports.value.filter((port)=>{

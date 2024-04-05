@@ -49,8 +49,8 @@ export default class ShellService {
 			console.log(data);
 			console.log(`pipy pause with code ${data.code} and signal ${data.signal}`)
 		});
-		// command.stdout.on('data', line => console.log(`command stdout: "${line}"`));
-		// command.stderr.on('data', line => console.log(`command stderr: "${line}"`));
+		command.stdout.on('data', line => console.log(`command stdout: "${line}"`));
+		command.stderr.on('data', line => console.log(`command stderr: "${line}"`));
 		command.on('error', error => console.error(`command error: "${error}"`));
 		let child = await command.spawn();
 		store.commit('account/setPid', child.pid);

@@ -19,6 +19,7 @@ import { getPort } from '@/service/common/request';
 import { resourceDir } from '@tauri-apps/api/path';
 
 const playing = ref(false);
+const loading = ref(false);
 const pipyProxyService = new PipyProxyService();
 const shellService = new ShellService();
 const confirm = useConfirm();
@@ -39,7 +40,9 @@ const user = computed(() => {
 	return store.getters['account/user'];
 });
 const placeholder = computed(() => {
-	if(!playing.value){
+	if(!!loading.value){
+		return "Starting...";
+	}else if(!playing.value){
 		return "Pipy off.";
 	}else if(!meshes.value || meshes.value.length ==0){
 		return "First, join a Mesh.";
@@ -54,9 +57,11 @@ onMounted(() => {
 });
 
 const loaddata = () => {
+	loading.value = true;
 	pipyProxyService.getMeshes()
 		.then(res => {
 			playing.value = true;
+			loading.value = false;
 			meshes.value = res;
 		})
 		.catch(err => console.log('Request Failed', err)); 
@@ -71,10 +76,13 @@ const pipyInit = async (pause) => {
 	store.commit('account/setUser', {
 		id: hostname
 	});
-	await startPipy();
+	loading.value = true;
+	setTimeout(() => {
+		startPipy();
+	},300)
 	setTimeout(() => {
 		loaddata();
-	},300)
+	},1500)
 }
 const pipyPlay = async () => {
 	await startPipy();
@@ -199,13 +207,13 @@ const restart = ref(false);
 			</div> -->
 			
 			<div class="flex-item">
-				<Button :disabled="!!playing" v-tooltip="'Config'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
+				<Button :disabled="!!playing" v-tooltip="'Setting'" class="pointer" severity="help" rounded text aria-label="Filter" @click="() => configOpen = true" >
 					<i class="pi pi-cog "  />
 				</Button>
 			</div>
 			<div class="flex-item">
-				<Button :disabled="!playing" v-tooltip="'Find Mesh'" class="pointer" severity="help" text rounded aria-label="Filter" @click="goConsole" >
-					<i class="pi pi-search " />
+				<Button :disabled="!playing" v-tooltip="'Mesh Console'" class="pointer" severity="help" text rounded aria-label="Filter" @click="goConsole" >
+					<i class="pi pi-desktop " />
 				</Button>
 			</div>
 			<div class="flex-item">

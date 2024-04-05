@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onActivated, computed } from 'vue';
 import PipyProxyService from '@/service/PipyProxyService';
 import { useRoute } from 'vue-router'
 import { useToast } from "primevue/usetoast";
@@ -25,6 +25,10 @@ const props = defineProps({
 			type: String,
 			default: ''
     },
+    servicePort: {
+			type: Number,
+			default: 0
+    },
 });
 const route = useRoute();
 const toast = useToast();
@@ -37,7 +41,7 @@ const config = ref({
 	protocol: "tcp",
 	listen: {
 		ip:'127.0.0.1',
-		port:0,
+		port:props.servicePort,
 	},
 	target: {
 		mesh: props.mesh,
@@ -50,7 +54,7 @@ const newConfig = () => {
 		protocol: "tcp",
 		listen: {
 			ip:'127.0.0.1',
-			port:0,
+			port:props.servicePort,
 		},
 		target: {
 			mesh: props.mesh,
@@ -60,6 +64,9 @@ const newConfig = () => {
 	}
 }
 
+onActivated(() => {
+	newConfig();
+});
 const enabled = computed(() => {
 	return config.value.listen?.port>0 && !!config.value.listen?.ip;
 });
@@ -98,8 +105,6 @@ const cancel = () => {
 	newConfig();
 	emits("save", false);
 }
-onMounted(() => {
-});
 const home = ref({
     icon: 'pi pi-desktop'
 });
