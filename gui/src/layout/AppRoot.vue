@@ -49,7 +49,7 @@ const placeholder = computed(() => {
 	} else if(meshes.value.length == 1){
 		return "1 Mesh Joined.";
 	} else {
-		return `${meshes.value.length} Mesh Joined.`;
+		return `${meshes.value.length} ${meshes.value.length>1?'Meshes':'Mesh'} Joined.`;
 	}
 });
 onMounted(() => {

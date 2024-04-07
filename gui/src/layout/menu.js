@@ -21,37 +21,6 @@ const prodMenu = {
 		
 const devMenu = [
 		{
-			
-			label: 'Bak Pages',
-			icon: 'pi pi-fw pi-briefcase',
-			items: [
-				{
-						label: 'Config', icon: 'pi pi-fw pi-cog', route: '/client/config'
-				},
-				{
-						label: 'Doc',
-						icon: 'pi pi-fw pi-question',
-						route: '/client/documentation'
-				},
-				{
-						label: 'Network', icon: 'pi pi-fw pi-globe', route: '/server/network', cond: 'client'
-				},
-				
-				{
-						label: 'Test Tool', icon: 'pi pi-fw pi-wifi', route: '/server/testtool', cond: 'client'
-				},
-				{
-						label: 'Clients', icon: 'pi pi-fw pi-desktop', route: '/server/clients', shortcut: '⌘+N'
-				},
-				{
-						label: 'Backends', icon: 'pi pi-fw pi-sitemap', route: '/server/backends'
-				},
-				{
-						label: 'Database', icon: 'pi pi-fw pi-database', route: '/server/database', shortcut: '⌘+N'
-				},
-			]
-		},
-		{
 		    label: 'Pages',
 		    icon: 'pi pi-fw pi-briefcase',
 		    items: [
@@ -106,7 +75,31 @@ const devMenu = [
 		            label: 'Empty',
 		            icon: 'pi pi-fw pi-circle-off',
 		            route: '/page/empty'
-		        }
+		        },
+						{
+								label: 'Config', icon: 'pi pi-fw pi-cog', route: '/client/config'
+						},
+						{
+								label: 'Doc',
+								icon: 'pi pi-fw pi-question',
+								route: '/client/documentation'
+						},
+						{
+								label: 'Network', icon: 'pi pi-fw pi-globe', route: '/server/network', cond: 'client'
+						},
+						
+						{
+								label: 'Test Tool', icon: 'pi pi-fw pi-wifi', route: '/server/testtool', cond: 'client'
+						},
+						{
+								label: 'Clients', icon: 'pi pi-fw pi-desktop', route: '/server/clients', shortcut: '⌘+N'
+						},
+						{
+								label: 'Backends', icon: 'pi pi-fw pi-sitemap', route: '/server/backends'
+						},
+						{
+								label: 'Database', icon: 'pi pi-fw pi-database', route: '/server/database', shortcut: '⌘+N'
+						},
 		    ]
 		},
     {

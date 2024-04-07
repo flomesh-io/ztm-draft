@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { removeAuthorization, AUTH_TYPE } from "@/service/common/request";
 import { useLayout } from '@/layout/composables/layout';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { getMenu } from './menu';
 import XeyeSvg from "@/assets/img/lg-white.svg";
 import HoverXeyeSvg from "@/assets/img/white.svg";
@@ -27,6 +27,7 @@ const { layoutConfig, onMenuToggle } = useLayout();
 const outsideClickListener = ref(null);
 const topbarMenuActive = ref(false);
 const router = useRouter();
+const route = useRoute();
 
 onMounted(() => {
     bindOutsideClickListener();
@@ -124,6 +125,7 @@ const menuClick = (e) => {
 	console.log(e)
 }
 const hasTauri = ref(!!window.__TAURI_INTERNALS__);
+const focusMenu = ref(route.path);
 </script>
 
 <template>
@@ -133,13 +135,13 @@ const hasTauri = ref(!!window.__TAURI_INTERNALS__);
 			</template>
 			<template #item="{ item, props, hasSubmenu, root }">
 					<router-link v-if="item.route && !!clientPath && item.cond == 'client'" v-slot="{ href, navigate }" :to="item.route+clientPath" custom>
-							<a v-ripple :href="href" v-bind="props.action" @click="navigate">
+							<a :class="{'actived':focusMenu == item.route}" v-ripple :href="href" v-bind="props.action" @click="() => { focusMenu = item.route;return navigate}">
 									<span :class="item.icon" />
 									<span class="ml-2">{{ item.label }}</span>
 							</a>
 					</router-link>
 					<router-link v-else-if="item.route && !item.cond" v-slot="{ href, navigate }" :to="item.route" custom>
-							<a v-ripple :href="href" v-bind="props.action" @click="navigate">
+							<a :class="{'actived':focusMenu == item.route}" v-ripple :href="href" v-bind="props.action"  @click="() => { focusMenu = item.route;return navigate}">
 									<span :class="item.icon" />
 									<span class="ml-2">{{ item.label }}</span>
 							</a>
