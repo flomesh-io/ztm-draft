@@ -123,6 +123,7 @@ const items = ref([
 const menuClick = (e) => {
 	console.log(e)
 }
+const hasTauri = ref(!!window.__TAURI_INTERNALS__);
 </script>
 
 <template>
@@ -149,7 +150,7 @@ const menuClick = (e) => {
 							<span v-if="hasSubmenu" class="pi pi-fw pi-angle-down ml-2" />
 					</a>
 			</template>
-			<template #end>
+			<template #end v-if="hasTauri">
 					<div class="flex align-items-center ">
 						<Button size="large" class="right-icon" type="button" icon="pi pi-window-minimize" @click="home" aria-haspopup="true" aria-controls="overlay_menu" />
 						<!-- <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" @click="menuClick"/> -->

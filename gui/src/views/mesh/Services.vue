@@ -38,7 +38,7 @@ const deleteService = (service) => {
 					name: service.name,
 					proto: service.protocol,
 					mesh:selectedMesh.value?.name,
-					ep:selectedMesh.value.agent?.id,
+					ep:selectedMesh.value?.agent?.id,
 				})
 					.then(res => {
 						getServices();
@@ -71,7 +71,7 @@ const getPorts = () => {
 	portMap.value = {}
 	pipyProxyService.getPorts({
 		mesh:selectedMesh.value?.name,
-		ep:selectedMesh.value.agent?.id
+		ep:selectedMesh.value?.agent?.id
 	})
 		.then(res => {
 			res.forEach((port)=>{
@@ -199,8 +199,8 @@ const savePort = () => {
 											 </div>
 											 <div class="flex">
 												 <div 
-													 v-if="!!portInfo(service.name,selectedMesh.agent?.id)" 
-													 v-tooltip="'Port:'+portInfo(service.name,selectedMesh.agent?.id)" 
+													 v-if="!!portInfo(service.name,selectedMesh?.agent?.id)" 
+													 v-tooltip="'Port:'+portInfo(service.name,selectedMesh?.agent?.id)" 
 													 class="pointer flex align-items-center justify-content-center bg-green-100 border-round mr-2" 
 													 style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-check-circle text-green-500 text-xl"></i>
@@ -302,7 +302,7 @@ const savePort = () => {
 		<PortMaping 
 			@save="savePort" 
 			:mesh="selectedMesh?.name" 
-			:endpoint="selectedMesh.agent?.id" 
+			:endpoint="selectedMesh?.agent?.id" 
 			:service="selectedService?.service?.name" 
 			:servicePort="selectedService?.service?.port"
 			:targetEndpoint="selectedService?.ep"/>

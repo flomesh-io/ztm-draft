@@ -27,10 +27,10 @@ export default defineConfig(async (config) => ({
 				  ignored: ["**/src-tauri/**"],
 				},
 				proxy: {
-					'/client': {
-						target: `http://127.0.0.1:${loadEnv(config.mode, process.cwd()).VITE_APP_API_PORT}/`,
+					'/proxy': {
+						target: `http://0.0.0.0:${loadEnv(config.mode, process.cwd()).VITE_APP_API_PORT}/`,
 						changeOrigin: true,
-						rewrite: (path) => path.replace(/^\/client/, ''),
+						rewrite: (path) => path.replace(/^\/proxy/, ''),
 					},
 				}
 			},

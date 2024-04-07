@@ -34,7 +34,7 @@ const newConfig = () => {
 }
 
 const enabled = computed(() => {
-	return config.value.name.length>0 && selected.value && !!selected.value.agent?.id;
+	return selected.value && config.value.name.length>0 && selected.value && !!selected.value.agent?.id;
 });
 const select = (d) => {
 	selected.value = d;

@@ -1,4 +1,5 @@
 import { fetch } from '@tauri-apps/plugin-http';
+import axios from "axios";
 import Cookie from './cookie'
 
 const xsrfHeaderName = "Authorization";
@@ -18,7 +19,12 @@ const METHOD = {
 };
 
 function getUrl(url){
-	return `http://127.0.0.1:${getPort()}${url}`
+	if(!window.__TAURI_INTERNALS__){
+		return `/proxy${url}`
+	} else {
+		
+		return `http://127.0.0.1:${getPort()}${url}`
+	}
 }
 const getPort = () => {
 	const VITE_APP_API_PORT = localStorage.getItem("VITE_APP_API_PORT");
@@ -27,28 +33,29 @@ const getPort = () => {
 }
 
 async function request(url, method, params, config) {
-  switch (method) {
-    case METHOD.GET:
-    case METHOD.POST:
-    case METHOD.DELETE:
-    case METHOD.PUT:
-			return fetch(getUrl(url), {
-				method,
-				header:{
-					"Content-Type": "application/json"
-				},
-				body: !!params?JSON.stringify(params):null,
-				...config
-			}).then((res) => res.json());
-    default:
-			return fetch(getUrl(url), {
-				method: "GET",
-				header:{
-					"Content-Type": "application/json"
-				},
-				...config
-			}).then((res) => res.json());
-  }
+	if(!window.__TAURI_INTERNALS__){
+		switch (method) {
+		  case METHOD.GET:
+		    return axios.get(getUrl(url), { params, ...config }).then((res) => res?.data);
+		  case METHOD.POST:
+		    return axios.post(getUrl(url), params, config).then((res) => res?.data);
+		  case METHOD.DELETE:
+		    return axios.delete(getUrl(url), params, config).then((res) => res?.data);
+		  case METHOD.PUT:
+		    return axios.put(getUrl(url), params, config).then((res) => res?.data);
+		  default:
+		    return axios.get(getUrl(url), { params, ...config }).then((res) => res?.data);
+		}
+	} else {
+		return fetch(getUrl(url), {
+			method,
+			header:{
+				"Content-Type": "application/json"
+			},
+			body: !!params?JSON.stringify(params):null,
+			...config
+		}).then((res) => res.json());
+	}
 }
 
 async function mock(d) {

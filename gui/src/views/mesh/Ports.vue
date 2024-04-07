@@ -36,7 +36,7 @@ const deletePort = (port) => {
 	    accept: () => {
 				pipyProxyService.deletePort({
 					mesh:selectedMesh.value?.name,
-					ep:selectedMesh.value.agent?.id,
+					ep:selectedMesh.value?.agent?.id,
 					proto: port.protocol,
 					ip: port?.listen?.ip,
 					port: port?.listen?.port
@@ -60,7 +60,7 @@ const getPorts = () => {
 	setTimeout(()=>{
 		pipyProxyService.getPorts({
 			mesh:selectedMesh.value?.name,
-			ep:selectedMesh.value.agent?.id
+			ep:selectedMesh.value?.agent?.id
 		})
 			.then(res => {
 				console.log("ports:")

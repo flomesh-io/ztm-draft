@@ -23,14 +23,14 @@ const progressStart = (to, from, next) => {
 };
 
 const resize = (width,height,resizable) => {
-	if(getCurrent().setSize){
+	if(!!window.__TAURI_INTERNALS__ && getCurrent().setSize){
 		getCurrent().setSize({
 			type:'Logical',
 			width,
 			height
 		});
 	}
-	if(getCurrent().setResizable){
+	if(!!window.__TAURI_INTERNALS__ && getCurrent().setResizable){
 		getCurrent().setResizable(resizable);
 	}
 }
@@ -54,8 +54,12 @@ const loginGuard = (to, from, next, options) => {
 		resize(408,455,false);
     next();
   } else if(to.path == "/root"){
-		resize(455,350,false);
-    next();
+		if(!!window.__TAURI_INTERNALS__){
+			resize(455,350,false);
+			next();
+		} else {
+			next("/mesh/list");
+		}
   } else {
 		resize(1280,860,true);
     next();
