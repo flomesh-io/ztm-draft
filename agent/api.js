@@ -23,32 +23,34 @@ function init() {
 
   db.allServices().forEach(
     function (svc) {
-      Object.values(meshes).forEach(
-        mesh => mesh.publishService(svc)
-      )
+      var mesh = meshes[svc.mesh]
+      mesh.publishService(svc)
     }
   )
 }
 
 function allMeshes() {
-  var all = db.allMeshes()
-  all.forEach(
-    function (obj) {
-      var mesh = meshes[obj.name]
-      if (mesh) {
-        obj.status = mesh.status()
-      } else {
-        obj.status = 'Unknown'
-      }
-    }
+  return Object.entries(meshes).map(
+    ([name, mesh]) => ({
+      name,
+      agent: { ...mesh.agent },
+      bootstraps: [ ...mesh.bootstraps ],
+      status: mesh.status(),
+    })
   )
-  return all
 }
 
 function getMesh(name) {
-  var obj = db.getMesh(name)
-  obj.status = 'OK'
-  return obj
+  var mesh = meshes[name]
+  if (mesh) {
+    return {
+      name,
+      agent: { ...mesh.agent },
+      bootstraps: [ ...mesh.bootstraps ],
+      status: mesh.status(),
+    }
+  }
+  return null
 }
 
 function setMesh(name, mesh) {
@@ -60,7 +62,7 @@ function setMesh(name, mesh) {
   }
   mesh = db.getMesh(name)
   meshes[name] = Mesh(mesh.agent, mesh.bootstraps)
-  return mesh
+  return getMesh(name)
 }
 
 function delMesh(name) {
@@ -73,48 +75,64 @@ function delMesh(name) {
 }
 
 function allEndpoints(mesh) {
-  return [getEndpoint(mesh)]
-}
-
-function getEndpoint(mesh, id) {
-  return {
-    id: '88888888-8888-8888-8888-888888888888',
-    name: 'test-node',
-    isLocal: true,
-    certificate: '',
-    ip: '127.0.0.1',
-    port: 12345,
-    heartbeat: Date.now(),
-    status: 'OK',
-  }
+  mesh = meshes[mesh]
+  if (!mesh) return Promise.resolve([])
+  var id = mesh.agent.id
+  return mesh.discoverEndpoints().then(
+    list => list.map(ep => ({ ...ep, isLocal: (ep.id === id) }))
+  )
 }
 
 function allServices(mesh, ep) {
-  if (ep) {
-    return db.allServices(mesh)
-  } else {
-    var agent = meshes[mesh].agent
-    var endpoints = [{ id: agent.id, name: agent.name }]
-    return db.allServices(mesh).map(s => Object.assign(s, { endpoints }))
-  }
+  mesh = meshes[mesh]
+  if (!mesh) return Promise.resolve([])
+  return mesh.discoverServices(ep).then(
+    function (list) {
+      list.forEach(svc => {
+        svc.isDiscovered = true
+        svc.isLocal = false
+      })
+      if (!ep || ep === mesh.agent.id) {
+        db.allServices().forEach(
+          function (local) {
+            var name = local.name
+            var protocol = local.protocol
+            var svc = list.find(s => s.name === name && s.protocol === protocol)
+            if (svc) {
+              svc.isLocal = true
+              svc.host = local.host
+              svc.port = local.port
+            } else {
+              list.push({
+                name,
+                protocol,
+                endpoints: [{
+                  id: mesh.agent.id,
+                  name: mesh.agent.name,
+                }],
+                isDiscovered: false,
+                isLocal: true,
+                host: local.host,
+                port: local.port,
+              })
+            }
+          }
+        )
+      }
+      return list
+    }
+  )
 }
 
 function getService(mesh, ep, proto, name) {
-  if (ep) {
-    db.getService(mesh, proto, name)
-  } else {
-    var agent = meshes[mesh].agent
-    var endpoints = [{ id: agent.id, name: agent.name }]
-    return Object.assign(
-      db.getService(mesh, proto, name),
-      { endpoints }
-    )
-  }
+  return allServices(mesh, ep).then(
+    list => list.find(svc => svc.name === name && svc.protocol === proto)
+  )
 }
 
 function setService(mesh, ep, proto, name, service) {
   db.setService(mesh, proto, name, service)
-  return db.getService(mesh, proto, name, service)
+  return getService(mesh, ep, proto, name)
 }
 
 function delService(mesh, ep, proto, name) {
@@ -157,7 +175,6 @@ export default {
   setMesh,
   delMesh,
   allEndpoints,
-  getEndpoint,
   allServices,
   getService,
   setService,

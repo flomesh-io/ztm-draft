@@ -68,7 +68,7 @@ var routes = Object.entries({
   '/api/meshes': {
 
     'GET': function () {
-      return responseJSON(200, api.allMeshes())
+      return response(200, api.allMeshes())
     },
   },
 
@@ -76,11 +76,11 @@ var routes = Object.entries({
 
     'GET': function ({ mesh }) {
       var obj = api.getMesh(mesh)
-      return obj ? responseJSON(200, obj) : response(404)
+      return obj ? response(200, obj) : response(404)
     },
 
     'POST': function ({ mesh }, req) {
-      return responseJSON(201, api.setMesh(mesh, JSON.decode(req.body)))
+      return response(201, api.setMesh(mesh, JSON.decode(req.body)))
     },
 
     'DELETE': function ({ mesh }) {
@@ -93,8 +93,8 @@ var routes = Object.entries({
   // Endpoint
   //   id: string (UUID)
   //   name: string
-  //   isLocal: boolean
   //   certificate: string (PEM)
+  //   isLocal: boolean
   //   ip: string
   //   port: number
   //   heartbeat: number
@@ -103,7 +103,9 @@ var routes = Object.entries({
 
   '/api/meshes/{mesh}/endpoints': {
     'GET': function (params) {
-      return responseJSON(200, api.allEndpoints(params.mesh))
+      return api.allEndpoints(params.mesh).then(
+        ret => response(200, ret)
+      )
     },
   },
 
@@ -112,7 +114,7 @@ var routes = Object.entries({
   //   name: string
   //   protocol: string (tcp|udp)
   //   endpoints?: { id: string, name: string }[]
-  //   isPublic: boolean
+  //   isDiscovered: boolean
   //   isLocal: boolean
   //   host?: string (only when isLocal == true)
   //   port?: number (only when isLocal == true)
@@ -120,24 +122,31 @@ var routes = Object.entries({
 
   '/api/meshes/{mesh}/services': {
     'GET': function ({ mesh }) {
-      return responseJSON(200, api.allServices(mesh))
+      return api.allServices(mesh).then(
+        ret => response(200, ret)
+      )
     },
   },
 
   '/api/meshes/{mesh}/endpoints/{ep}/services': {
     'GET': function ({ mesh, ep }) {
-      return responseJSON(200, api.allServices(mesh, ep))
+      return api.allServices(mesh, ep).then(
+        ret => response(200, ret)
+      )
     },
   },
 
   '/api/meshes/{mesh}/endpoints/{ep}/services/{proto}/{svc}': {
     'GET': function ({ mesh, ep, proto, svc }) {
-      var obj = api.getService(mesh, ep, proto, svc)
-      return obj ? responseJSON(200, obj) : response(404)
+      return api.getService(mesh, ep, proto, svc).then(
+        ret => ret ? response(200, ret) : response(404)
+      )
     },
 
     'POST': function ({ mesh, ep, proto, svc }, req) {
-      return responseJSON(201, api.setService(mesh, ep, proto, svc, JSON.decode(req.body)))
+      return api.setService(mesh, ep, proto, svc, JSON.decode(req.body)).then(
+        ret => response(201, ret)
+      )
     },
 
     'DELETE': function ({ mesh, ep, proto, svc }) {
@@ -176,18 +185,18 @@ var routes = Object.entries({
 
   '/api/meshes/{mesh}/endpoints/{ep}/ports': {
     'GET': function ({ mesh, ep }) {
-      return responseJSON(200, api.allPorts(mesh, ep))
+      return response(200, api.allPorts(mesh, ep))
     },
   },
 
   '/api/meshes/{mesh}/endpoints/{ep}/ports/{ip}/{proto}/{port}': {
     'GET': function ({ mesh, ep, ip, proto, port }) {
       var obj = api.getPort(mesh, ep, ip, proto, port)
-      return obj ? responseJSON(200, obj) : response(404)
+      return obj ? response(200, obj) : response(404)
     },
 
     'POST': function ({ mesh, ep, ip, proto, port }, req) {
-      return responseJSON(201, api.setPort(mesh, ep, ip, proto, port, JSON.decode(req.body)))
+      return response(201, api.setPort(mesh, ep, ip, proto, port, JSON.decode(req.body)))
     },
 
     'DELETE': function ({ mesh, ep, ip, proto, port }) {
@@ -218,7 +227,7 @@ pipy.listen(opt['--listen'], $=>$
         try {
           return route.handler(params, req)
         } catch (e) {
-          return responseJSON(500, e)
+          return response(500, e)
         }
       }
       return new Message({ status: 404 })
@@ -234,18 +243,18 @@ function notImplemented(params, req) {
   }
 }
 
-function response(status) {
-  return new Message({ status })
+function response(status, body) {
+  if (!body) return new Message({ status })
+  if (typeof body === 'string') return responseCT(status, 'text/plain', body)
+  return responseCT(status, 'application/json', JSON.encode(body))
 }
 
-function responseJSON(status, data) {
+function responseCT(status, ct, body) {
   return new Message(
     {
       status,
-      headers: {
-        'content-type': 'application/json',
-      }
+      headers: { 'content-type': ct }
     },
-    JSON.encode(data)
+    body
   )
 }
