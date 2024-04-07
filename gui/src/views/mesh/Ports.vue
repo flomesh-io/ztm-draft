@@ -11,6 +11,7 @@ const pipyProxyService = new PipyProxyService();
 const confirm = useConfirm();
 const loading = ref(false);
 const status = ref({});
+const endpointMap = ref({});
 const ports = ref([])
 const selectedMesh = ref(null);
 
@@ -23,10 +24,12 @@ const load = (d) => {
 }
 onActivated(()=>{
 	getPorts();
+	getEndpoints();
 })
 const select = (selected) => {
 	selectedMesh.value = selected;
 	getPorts();
+	getEndpoints();
 }
 const deletePort = (port) => {
 	confirm.require({
@@ -53,8 +56,20 @@ const deletePort = (port) => {
 	    reject: () => {
 	    }
 	});
-	
 }
+
+const getEndpoints = () => {
+	pipyProxyService.getEndpoints({
+		mesh:selectedMesh.value?.name,
+	})
+		.then(res => {
+			res.forEach((ep) => {
+				endpointMap.value[ep.id] = ep;
+			})
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
+
 const getPorts = () => {
 	loading.value = true;
 	setTimeout(()=>{
@@ -146,8 +161,15 @@ const active = ref(0);
 														</span>
 												</Chip>
 											</div>
-											<div class="text-gray-500" v-if="port.target?.endpoint">
-												<Tag><span class="status-point run ml-2 mr-3"></span>EP: {{port.target?.endpoint}}</Tag>
+											<div class="mb-2" v-if="port.target?.endpoint">
+												<Chip class="pl-0 pr-3 mr-2">
+														<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+															<i class="pi pi-chart-scatter"/>
+														</span>
+														<span class="font-medium ml-2">
+															EP: {{endpointMap[port.target?.endpoint]?.name||'Unnamed EP' }}
+														</span>
+												</Chip>
 											</div>
 										</Fieldset>
 							 </div>

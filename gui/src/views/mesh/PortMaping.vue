@@ -151,7 +151,7 @@ const home = ref({
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
 								<Chip class="pl-0 pr-3 mr-2">
 								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-											<i class="pi pi-bookmark"/>
+											<i class="pi pi-chart-scatter"/>
 										</span>
 								    <span class="ml-2 font-medium">
 											{{targetEndpoint?.name || targetEndpoint?.id}}

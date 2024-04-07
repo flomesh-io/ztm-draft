@@ -11,6 +11,7 @@ const router = useRouter();
 import store from "@/store";
 const pipyProxyService = new PipyProxyService();
 const services = ref([]);
+const endpointMap = ref({});
 const status = ref({});
 const scopeType = ref('All');
 const portMap = ref({});
@@ -22,15 +23,18 @@ const loading = ref(false);
 const select = (selected) => {
 	selectedMesh.value = selected;
 	getServices();
+	getEndpoints();
 	getPorts();
 }
 onActivated(()=>{
 	getServices();
+	getEndpoints();
 	getPorts();
 })
 const deleteService = (service) => {
+	const ep = endpointMap.value[service.ep?.id]?.name|| 'Unnamed EP';
 	confirm.require({
-	    message: `Are you sure to delete ${service.name} service?`,
+	    message: `Are you sure to delete ${service.name}(${ep}) service?`,
 	    header: 'Tips',
 	    icon: 'pi pi-exclamation-triangle',
 	    accept: () => {
@@ -50,6 +54,19 @@ const deleteService = (service) => {
 	});
 	
 }
+
+const getEndpoints = () => {
+	pipyProxyService.getEndpoints({
+		mesh:selectedMesh.value?.name,
+	})
+		.then(res => {
+			res.forEach((ep) => {
+				endpointMap.value[ep.id] = ep;
+			})
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
+
 const getServices = () => {
 	active.value = 0;
 	loading.value = true;
@@ -115,7 +132,12 @@ const servicesLb = computed(() => {
 		if(!lbMap[svc.name]){
 			lbMap[svc.name] = [];
 		}
-		lbMap[svc.name].push(svc);
+		svc.endpoints.forEach((ep) => {
+			lbMap[svc.name].push({
+				ep: ep,
+				...svc
+			});
+		})
 	});
 	return Object.values(lbMap);
 });
@@ -144,9 +166,9 @@ const savePort = () => {
 <template>
 	<Card class="nopd ml-3 mr-3 mt-3">
 		<template #content>
-			<InputGroup class="search-bar" v-show="active!=2">
+			<InputGroup class="search-bar" v-show="active!=1">
 				<MeshSelector 
-					v-show="active!=2" 
+					v-show="active!=1" 
 					:full="false" 
 					innerClass="transparent" 
 					@load="load" 
@@ -161,85 +183,15 @@ const savePort = () => {
 	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 		<TabPanel>
 			<template #header>
-				<div @click="getServices">
-					<i class="pi pi-server mr-2"/>Services
-				</div>
-			</template>
-			<div class="text-center">
-				<div class="mt-1 mb-2" >
-					
-					<Chip class="pl-0 pr-3">
-							<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-								<RadioButton v-model="scopeType" inputId="scopeType1" name="scopeType" value="All" />
-							</span>
-							<span class="ml-2 font-medium">All</span>
-					</Chip>
-					
-					<Chip class="ml-2 pl-0 pr-3">
-							<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-								<RadioButton v-model="scopeType" inputId="scopeType2" name="scopeType" value="Remote" />
-							</span>
-							<span class="ml-2 font-medium">Remote</span>
-					</Chip>
-					
-					<Chip class="ml-2 pl-0 pr-3">
-							<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-								<RadioButton v-model="scopeType" inputId="scopeType3" name="scopeType" value="Local" />
-							</span>
-							<span class="ml-2 font-medium">Local</span>
-					</Chip>
-				</div>
-				<div class="grid text-left" v-if="servicesFilter && servicesFilter.length >0">
-						<div class="col-12 md:col-6 lg:col-3" v-for="(service,hid) in servicesFilter" :key="hid">
-							 <div class="surface-card shadow-2 p-3 border-round">
-									 <div class="flex justify-content-between mb-3">
-											 <div>
-														<span class="block text-500 font-medium mb-3">{{service.isLocal?'Local':'Remote'}}</span>
-														<div class="text-900 font-medium text-xl">{{decodeURI(service.name)}}</div>
-											 </div>
-											 <div class="flex">
-												 <div 
-													 v-if="!!portInfo(service.name,selectedMesh?.agent?.id)" 
-													 v-tooltip="'Port:'+portInfo(service.name,selectedMesh?.agent?.id)" 
-													 class="pointer flex align-items-center justify-content-center bg-green-100 border-round mr-2" 
-													 style="width: 2.5rem; height: 2.5rem">
-														 <i class="pi pi-check-circle text-green-500 text-xl"></i>
-												 </div>
-												 <div v-else v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:selectedMesh.agent})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
-														 <i class="pi pi-circle text-primary-500 text-xl"></i>
-												 </div>
-												 <div v-tooltip="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
-														 <i class="pi pi-trash text-gray-500 text-xl"></i>
-												 </div>
-											 </div>
-	<!-- 	       								<div v-tooltip="'Revoke'" @click="changeStatus(service, 3)" v-else-if="service.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
-													<i class="pi pi-spin pi-spinner text-purple-500 text-xl"></i>
-											</div> -->
-										<!-- 	<div v-badge.danger="'3'" v-tooltip="'Subscriptions'" @click="clients" class="mr-3 pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
-												<i class="pi pi-user text-gray-500 text-xl"></i>
-											</div>
-											<div v-tooltip="'Manage'" @click="newHub" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
-												<i class="pi pi-pencil text-gray-500 text-xl"></i>
-											</div> -->
-									 </div>
-										<span class="text-500"><Tag severity="warning" :value="service.protocol" class="mr-1"></Tag> {{service.host}}{{!!service.port?(`:${service.port}`):''}}</span>
-							 </div>
-					 </div>
-				</div>
-				<img v-else src="/demo/images/landing/free.svg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
-			</div>
-		</TabPanel>
-		<TabPanel>
-			<template #header>
 				<div @click="loaddata">
-					<i class="pi pi-sitemap mr-2" />Services LB
+					<i class="pi pi-sitemap mr-2" />Services
 				</div>
 			</template>
 			<div class="text-center">
 				
 	
 				<div class="grid text-left" v-if="servicesLb && servicesLb.length >0">
-						<div class="col-12 md:col-6 lg:col-3" v-for="(lb,hid) in servicesLb" :key="hid">
+						<div class="col-12 md:col-6 lg:col-4" v-for="(lb,hid) in servicesLb" :key="hid">
 							 <div class="surface-card shadow-2 p-3 border-round">
 									 <div class="flex justify-content-between mb-3">
 											 <div>
@@ -268,10 +220,30 @@ const savePort = () => {
 											</div> -->
 									 </div>
 										<Fieldset :legend="lb.length+ (lb.length>1?' Endpoints':' Endpoint')" :toggleable="true">
-											<div class="surface-card p-3 border-round">
+											<div class="surface-card border-round">
 												<div v-for="(service, sid) in lb" :key="sid" class="flex justify-content-between mb-3">
-													<span class="status-point run mr-3"/> 
-													<span class="text-500 relative" style="top: -5px;"><Tag severity="warning" :value="service.protocol" class="mr-1 relative" style="top: -1px;"></Tag> {{service.host}}{{!!service.port?(`:${service.port}`):''}}</span>
+													<span class="text-500 flex">
+														<span class="status-point run mr-4 relative vm" style="top: 12px;" ></span>
+														<div class="flex align-items-center" :class="{'flex-column': !!service.port || !!service.host}">
+															<div class="text-left w-full"><b>{{endpointMap[service.ep?.id]?.name|| 'Unnamed EP'}}</b></div>
+															<div v-if="!!service.port || !!service.host">{{service.host}}{{!!service.port?(`:${service.port}`):''}} | {{service.protocol}}</div>
+														</div>
+													</span>
+													<div class="flex">
+														<div 
+															v-if="!!portInfo(service.name,selectedMesh?.agent?.id)" 
+															v-tooltip="'Port:'+portInfo(service.name,selectedMesh?.agent?.id)" 
+															class="pointer flex align-items-center justify-content-center bg-green-100 border-round mr-2" 
+															style="width: 2rem; height: 2rem">
+																<i class="pi pi-check-circle text-green-500 text-xl"></i>
+														</div>
+														<div v-else v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:{id:service.ep?.id, name: (endpointMap[service.ep?.id]?.name|| 'Unnamed EP')}})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2rem; height: 2rem">
+															<i class="pi pi-circle text-primary-500 text-xl"></i>
+														</div>
+														<div v-tooltip.top="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2rem; height: 2rem">
+															<i class="pi pi-trash text-gray-500 text-xl"></i>
+														</div>
+												  </div>
 												</div>
 											</div>
 										</Fieldset>
