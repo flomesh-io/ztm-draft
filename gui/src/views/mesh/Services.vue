@@ -27,9 +27,11 @@ const select = (selected) => {
 	getPorts();
 }
 onActivated(()=>{
-	getServices();
-	getEndpoints();
-	getPorts();
+	if(selectedMesh.value){
+		getServices();
+		getEndpoints();
+		getPorts();
+	}
 })
 const deleteService = (service) => {
 	const ep = endpointMap.value[service.ep?.id]?.name|| 'Unnamed EP';
@@ -56,9 +58,7 @@ const deleteService = (service) => {
 }
 
 const getEndpoints = () => {
-	pipyProxyService.getEndpoints({
-		mesh:selectedMesh.value?.name,
-	})
+	pipyProxyService.getEndpoints(selectedMesh.value?.name,)
 		.then(res => {
 			res.forEach((ep) => {
 				endpointMap.value[ep.id] = ep;
@@ -173,7 +173,7 @@ const savePort = () => {
 					innerClass="transparent" 
 					@load="load" 
 					@select="select"/>
-				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service name | host" rows="1" cols="30" />
+				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service | host" rows="1" cols="30" />
 				<Button :disabled="!typing" icon="pi pi-search"  @click="clickSearch"/>
 			</InputGroup>
 		</template>

@@ -59,9 +59,7 @@ const deletePort = (port) => {
 }
 
 const getEndpoints = () => {
-	pipyProxyService.getEndpoints({
-		mesh:selectedMesh.value?.name,
-	})
+	pipyProxyService.getEndpoints(selectedMesh.value?.name)
 		.then(res => {
 			res.forEach((ep) => {
 				endpointMap.value[ep.id] = ep;
@@ -88,7 +86,7 @@ const getPorts = () => {
 }
 const portsFilter = computed(() => {
 	return ports.value.filter((port)=>{
-		return (typing.value == '' || typing.value == port.target.service );
+		return (typing.value == '' || typing.value == port.target.service|| typing.value == port.listen.port );
 	})
 });
 
@@ -109,7 +107,7 @@ const active = ref(0);
 					innerClass="transparent" 
 					@load="load" 
 					@select="select"/>
-				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service name" rows="1" cols="30" />
+				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service | port" rows="1" cols="30" />
 				<Button :disabled="!typing" icon="pi pi-search"  @click="clickSearch"/>
 			</InputGroup>
 		</template>
