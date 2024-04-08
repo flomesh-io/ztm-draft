@@ -17,6 +17,7 @@ dist-ssr
 coverage
 *.local
 /release
+/download/*
 /agent
 /src-tauri/agent
 /public/agent
