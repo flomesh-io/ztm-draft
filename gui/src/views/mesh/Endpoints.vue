@@ -30,9 +30,7 @@ const select = (selected) => {
 }
 const getEndpoints = () => {
 	loading.value = true;
-	pipyProxyService.getEndpoints({
-		mesh:selectedMesh.value?.name,
-	})
+	pipyProxyService.getEndpoints(selectedMesh.value?.name)
 		.then(res => {
 			console.log("Endpoints:")
 			console.log(res)

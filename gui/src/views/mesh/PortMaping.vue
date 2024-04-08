@@ -33,9 +33,6 @@ const props = defineProps({
 const route = useRoute();
 const toast = useToast();
 const pipyProxyService = new PipyProxyService();
-const user = computed(() => {
-	return store.getters['account/user'];
-});
 const loading = ref(false);
 const config = ref({
 	protocol: "tcp",

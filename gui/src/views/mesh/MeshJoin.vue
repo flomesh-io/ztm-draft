@@ -18,7 +18,7 @@ const loading = ref(false);
 const config = ref({
 	name: "",
 	agent: {
-		name: user.id,
+		name: user.value.id,
 		certificate: "",
 		privateKey: "",
 	},
@@ -28,7 +28,7 @@ const newConfig = () => {
 	config.value = {
 		name: "",
 		agent: {
-			name: user.id,
+			name: user.value.id,
 			certificate: "",
 			privateKey: "",
 		},
@@ -106,6 +106,19 @@ const home = ref({
 							</div>
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Nickname</div>
+							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+								<Chip class="pl-0 pr-3 mb-2 align-items-top teatarea-panel"  >
+										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-user" />
+										</span>
+										<span class="font-medium">
+											<Textarea  placeholder="Unset" v-model="config.agent.name" :autoResize="false" rows="2" />
+										</span>
+								</Chip>	
+							</div>
+					</li>
+					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
 							<div class="text-500 w-6 md:w-2 font-medium">Bootstraps</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1 bootstrap">
 								<ChipList icon="pi-desktop" placeholder="Host[:Port]" v-model:list="config.bootstraps" />
@@ -120,7 +133,7 @@ const home = ref({
 											<i class="pi pi-shield" />
 										</span>
 										<span class="font-medium">
-											<Textarea  placeholder="Unset" v-model="config.agent.certificate" :autoResize="false" rows="9" />
+											<Textarea  placeholder="Unset" v-model="config.agent.certificate" :autoResize="false" rows="8" />
 										</span>
 								</Chip>	
 							</div>
@@ -134,7 +147,7 @@ const home = ref({
 											<i class="pi pi-key" />
 										</span>
 										<span class="font-medium">
-											<Textarea placeholder="Unset" v-model="config.agent.privateKey" :autoResize="false" rows="6"  />
+											<Textarea placeholder="Unset" v-model="config.agent.privateKey" :autoResize="false" rows="5"  />
 										</span>
 								</Chip>
 							</div>

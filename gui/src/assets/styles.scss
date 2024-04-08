@@ -575,3 +575,12 @@ pre.app-code code{
 	background-color: transparent;
 	
 }
+.text-ellipsis{
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	display: inline-block;
+}
+fieldset{
+	min-inline-size:auto;
+}

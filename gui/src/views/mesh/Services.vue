@@ -221,15 +221,17 @@ const savePort = () => {
 									 </div>
 										<Fieldset :legend="lb.length+ (lb.length>1?' Endpoints':' Endpoint')" :toggleable="true">
 											<div class="surface-card border-round">
-												<div v-for="(service, sid) in lb" :key="sid" class="flex justify-content-between mb-3">
-													<span class="text-500 flex">
-														<span class="status-point run mr-4 relative vm" style="top: 12px;" ></span>
-														<div class="flex align-items-center" :class="{'flex-column': !!service.port || !!service.host}">
-															<div class="text-left w-full"><b>{{endpointMap[service.ep?.id]?.name|| 'Unnamed EP'}}</b></div>
-															<div v-if="!!service.port || !!service.host">{{service.host}}{{!!service.port?(`:${service.port}`):''}} | {{service.protocol}}</div>
+												<div v-for="(service, sid) in lb" :key="sid" class="flex mb-3 w-full">
+													<div class="flex-item">
+														<div class="text-500 flex w-full">
+															<span class="status-point run mr-4 relative vm" style="top: 12px;" ></span>
+															<div class="flex flex-item align-items-center" :class="{'flex-column': !!service.port || !!service.host}">
+																<div class="text-left w-full " v-tooltip="endpointMap[service.ep?.id]?.name" ><b class="text-ellipsis" style="width: 90%;">{{endpointMap[service.ep?.id]?.name|| 'Unnamed EP'}}</b></div>
+																<div class="text-left w-full" v-if="!!service.port || !!service.host">{{service.host}}{{!!service.port?(`:${service.port}`):''}} | {{service.protocol}}</div>
+															</div>
 														</div>
-													</span>
-													<div class="flex">
+													</div>
+													<div class="flex text-right" style="width: 5rem;">
 														<div 
 															v-if="!!portInfo(service.name,selectedMesh?.agent?.id)" 
 															v-tooltip="'Port:'+portInfo(service.name,selectedMesh?.agent?.id)" 
