@@ -106,22 +106,22 @@ const home = ref({
 							</div>
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Nickname</div>
+							<div class="text-500 w-6 md:w-2 font-medium">Join As</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
-								<Chip class="pl-0 pr-3 mb-2 align-items-top teatarea-panel"  >
+								<Chip class="pl-0 pr-3 mb-2 align-items-top"  >
 										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 											<i class="pi pi-user" />
 										</span>
-										<span class="font-medium">
-											<Textarea  placeholder="Unset" v-model="config.agent.name" :autoResize="false" rows="2" />
+										<span class="font-medium ml-2">
+											<InputText :maxLength="20" placeholder="Name" class="add-tag-input xxl" :unstyled="true" v-model="config.agent.name" type="text" />
 										</span>
 								</Chip>	
 							</div>
 					</li>
 					<li class="flex align-items-center py-3 px-2 border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Bootstraps</div>
+							<div class="text-500 w-6 md:w-2 font-medium">Hubs</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1 bootstrap">
-								<ChipList icon="pi-desktop" placeholder="Host[:Port]" v-model:list="config.bootstraps" />
+								<ChipList icon="pi-desktop" placeholder="Host:Port" v-model:list="config.bootstraps" />
 							</div>
 					</li>
 					
