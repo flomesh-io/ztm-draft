@@ -12,8 +12,8 @@
 		"tauri": "tauri",
 		"hub": "pipy ../hub/main.js --skip-unknown-arguments --listen=0.0.0.0:8888",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
-		"download-pipy-windows": "cd ./download && curl -o pipy.zip https://pipy-oss-1255617643.cos.accelerate.myqcloud.com/repo/pipy-repo-nightly/win32/binary/pipy-repo-nightly-202404011409-win32-x86_64.zip && unzip pipy.zip && cp -f pipy.exe ../src-tauri/bin/pipy-x86_64-pc-windows-msvc.exe",
-		"download-pipy-linux": "cd ./download && curl -o pipy.tar.gz https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy-nightly/x86_64/binary/pipy-nightly-202404011409-generic_linux-x86_64.tar.gz && tar -xzf pipy.tar.gz && cp -f ./usr/local/bin/pipy ../src-tauri/bin/pipy-x86_64-unknown-linux-gnu"
+		"download-pipy-windows": "mkdir -p download && cd download && curl -o pipy.zip https://pipy-oss-1255617643.cos.accelerate.myqcloud.com/repo/pipy-repo-nightly/win32/binary/pipy-repo-nightly-202404011409-win32-x86_64.zip && unzip pipy.zip && cp -f pipy.exe ../src-tauri/bin/pipy-x86_64-pc-windows-msvc.exe",
+		"download-pipy-linux": "mkdir -p download && cd download && curl -o pipy.tar.gz https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy-nightly/x86_64/binary/pipy-nightly-202404011409-generic_linux-x86_64.tar.gz && tar -xzf pipy.tar.gz && cp -f ./usr/local/bin/pipy ../src-tauri/bin/pipy-x86_64-unknown-linux-gnu"
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^2.0.0-beta.6",
