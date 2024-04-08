@@ -10,6 +10,7 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '21'
+    - run: sudo apt-get install libgtk-3-dev
     - name: build app
       run: |
         cd gui
