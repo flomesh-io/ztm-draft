@@ -6,7 +6,7 @@ import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
 import PipyVersion from './PipyVersion.vue';
 import XeyeSvg from "@/assets/img/white.png";
-import HoverXeyeSvg from "@/assets/img/logo.png";
+import HoverXeyeSvg from "@/assets/img/loading.png";
 import PipySvg from "@/assets/img/pipy-white.png";
 import { useConfirm } from "primevue/useconfirm";
 import PipyProxyService from '@/service/PipyProxyService';
@@ -156,7 +156,7 @@ const restart = ref(false);
 		</div>
 		<div class="infotop">
 			<div>
-				<img :class="{'spiner': playing,'bling2':!playing}" class="logo pointer " @mouseleave="logoHover = false" @mouseover="logoHover = true" :src="logoHover?HoverXeyeSvg:XeyeSvg" height="60"/>
+				<img :class="{'spiner': playing,'bling2':!playing}" class="logo pointer" :src="playing?HoverXeyeSvg:XeyeSvg" height="60"/>
 			</div>
 			<div>
 				
@@ -279,6 +279,7 @@ const restart = ref(false);
 <style lang="scss" scoped>
 	.log{
 		opacity: 0.8;
+		transition: .3s all;
 	}
 	.bling2{
 		-webkit-animation: bling2 2s infinite linear;
