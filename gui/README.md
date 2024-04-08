@@ -1,6 +1,6 @@
-# ZTMesh developing with  Tauri + Vue 3 + Vite
+# ZTMesh developing with  Tauri2.0 + Vue 3 + Vite
 
-This template should help get you started developing with Tauri + Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This template should help get you started developing with Tauri2.0 + Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
 ## Recommended IDE Setup
 
@@ -15,8 +15,18 @@ or
 ```sh
 yarn install
 ```
-### Compile and Hot-Reload for Development
 
+### Download pipy (plaform=windows|linux|macos-x86|macos-arm)
+```sh
+yarn download-pipy-{plaform}
+```
+
+### Mock a hub if needed
+```sh
+yarn hub
+```
+
+### Compile and Hot-Reload for Development
 ```sh
 npm run tauri dev
 ```
@@ -24,6 +34,7 @@ or
 ```sh
 yarn tauri dev
 ```
+
 ### Compile and Minify for Production APP
 
 ```sh
