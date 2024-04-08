@@ -56,7 +56,6 @@ export default function (agent, bootstraps) {
 
     function updateServiceList(list) {
       var isSending = Boolean(serviceListUpdate)
-      serviceListUpdate = list
       serviceListUpdate = new Message(
         {
           method: 'POST',
@@ -218,7 +217,7 @@ export default function (agent, bootstraps) {
   function deleteService(protocol, name) {
     var old = services.find(s => s.protocol == protocol && s.name === name)
     if (old) {
-      service.splice(services.indexOf(old), 1)
+      services.splice(services.indexOf(old), 1)
       updateServiceList()
     }
   }

@@ -22,15 +22,25 @@ if (options['--help']) {
 
 var routes = Object.entries({
 
-  '/api/endpoints/{ep}': {
-    'CONNECT': function () {
-      return agentSession
+  '/api/status': {
+    'POST': function () {
+      return findCurrentEndpointSession() ? postStatus : noSession
     },
   },
 
   '/api/endpoints': {
     'GET': function () {
       return getEndpoints
+    },
+  },
+
+  '/api/endpoints/{ep}': {
+    'GET': function () {
+      return getEndpoint
+    },
+
+    'CONNECT': function () {
+      return connectEndpoint
     },
   },
 
@@ -46,13 +56,13 @@ var routes = Object.entries({
     },
 
     'POST': function () {
-      return findEndpoint() ? postServices : noSession
+      return findCurrentEndpointSession() ? postServices : noSession
     },
   },
 
-  '/api/status': {
-    'POST': function () {
-      return findEndpoint() ? postStatus : noSession
+  '/api/services/{proto}/{svc}': {
+    'GET': function () {
+      return getService
     },
   },
 
@@ -73,6 +83,8 @@ var endpoints = {}
 var $agent = null
 var $params = null
 var $endpoint = null
+var $hubAddr
+var $hubPort
 
 pipy.listen(opt['--listen'], $=>$
   .onStart(
@@ -81,6 +93,8 @@ pipy.listen(opt['--listen'], $=>$
         ip: ib.remoteAddress,
         port: ib.remotePort,
       }
+      $hubAddr = ib.localAddress
+      $hubPort = ib.localPort
     }
   )
   .demuxHTTP().to($=>$
@@ -97,29 +111,18 @@ pipy.listen(opt['--listen'], $=>$
   )
 )
 
-var notFound = pipeline($=>$
-  .replaceData()
-  .replaceMessage(response(404))
-)
-
-var notSupported = pipeline($=>$
-  .replaceData()
-  .replaceMessage(response(405))
-)
-
-var noSession = pipeline($=>$
-  .replaceData()
-  .replaceMessage(response(404, 'No agent session established yet'))
-)
-
-var agentSession = pipeline($=>$
-  .acceptHTTPTunnel(
-    function () {
-      $agent.id = $params.ep
-      console.info('Agent session established with ID =', $agent.id)
-      return response(200)
+var postStatus = pipeline($=>$
+  .replaceMessage(
+    function (req) {
+      var info = JSON.decode(req.body)
+      Object.assign(
+        $endpoint, {
+          name: info.name,
+          heartbeat: Date.now(),
+        }
+      )
+      return new Message({ status: 201 })
     }
-  ).to($=>$
   )
 )
 
@@ -137,6 +140,37 @@ var getEndpoints = pipeline($=>$
         status: 'OK',
       })
     ))
+  )
+)
+
+var getEndpoint = pipeline($=>$
+  .replaceData()
+  .replaceMessage(
+    function () {
+      var ep = endpoints[$params.ep]
+      if (!ep) return response(404)
+      return response(200, {
+        id: ep.id,
+        name: ep.name,
+        certificate: ep.certificate,
+        ip: ep.ip,
+        port: ep.port,
+        hubs: ep.hubs,
+        heartbeat: ep.heartbeat,
+        status: 'OK',
+      })
+    }
+  )
+)
+
+var connectEndpoint = pipeline($=>$
+  .acceptHTTPTunnel(
+    function () {
+      $agent.id = $params.ep
+      console.info('Agent session established with ID =', $agent.id)
+      return response(200)
+    }
+  ).to($=>$
   )
 )
 
@@ -176,24 +210,47 @@ var postServices = pipeline($=>$
   )
 )
 
-var postStatus = pipeline($=>$
+var getService = pipeline($=>$
+  .replaceData()
   .replaceMessage(
-    function (req) {
-      var info = JSON.decode(req.body)
-      Object.assign(
-        $endpoint, {
-          name: info.name,
-          heartbeat: Date.now(),
-        }
+    function () {
+      var name = $param.svc
+      var protocol = $param.proto
+      var endpoints = Object.values(endpoints).filter(
+        ep => ep.services.some(s => s.name === name && s.protocol === protocol)
       )
-      return new Message({ status: 201 })
+      if (endpoints.length === 0) return response(404)
+      return response(200, {
+        name,
+        protocol,
+        endpoints: endpoints.map(({ id, name }) => ({ id, name })),
+      })
     }
   )
 )
 
-function findEndpoint() {
+var notFound = pipeline($=>$
+  .replaceData()
+  .replaceMessage(response(404))
+)
+
+var notSupported = pipeline($=>$
+  .replaceData()
+  .replaceMessage(response(405))
+)
+
+var noSession = pipeline($=>$
+  .replaceData()
+  .replaceMessage(response(404, 'No agent session established yet'))
+)
+
+function findCurrentEndpointSession() {
   if (!$agent.id) return false
-  $endpoint = (endpoints[$agent.id] ??= { ...$agent })
+  $endpoint = endpoints[$agent.id]
+  if (!$endpoint) {
+    $endpoint = endpoints[$agent.id] = { ...$agent }
+    $endpoint.hubs = [`${$hubAddr}:${$hubPort}`]
+  }
   return true
 }
 

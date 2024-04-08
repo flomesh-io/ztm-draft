@@ -131,11 +131,17 @@ function getService(mesh, ep, proto, name) {
 }
 
 function setService(mesh, ep, proto, name, service) {
-  db.setService(mesh, proto, name, service)
+  var m = meshes[mesh]
+  if (m) {
+    db.setService(mesh, proto, name, service)
+    m.publishService({ ...service, name, protocol: proto })
+  }
   return getService(mesh, ep, proto, name)
 }
 
 function delService(mesh, ep, proto, name) {
+  var m = meshes[mesh]
+  if (m) m.deleteService(proto, name)
   db.delService(mesh, proto, name)
 }
 
