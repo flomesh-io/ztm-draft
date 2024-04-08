@@ -77,7 +77,7 @@ const join = () => {
 															</span>
 	                            <div class="text-900 font-medium text-xl">Joined</div>
 	                       </div>
-	                       <div v-tooltip="'Unsubscribe'" @click="deleteMesh(mesh.name)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
+	                       <div v-tooltip="'Leave'" @click="deleteMesh(mesh.name)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2.5rem; height: 2.5rem">
 	                           <i class="pi pi-trash text-gray-500 text-xl"></i>
 	                       </div>
 <!-- 	       								<div v-tooltip="'Revoke'" @click="changeStatus(mesh, 3)" v-else-if="mesh.scope == 'Private'" class="pointer flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">
