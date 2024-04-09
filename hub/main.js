@@ -50,6 +50,12 @@ var routes = Object.entries({
     },
   },
 
+  '/api/endpoints/{ep}/services/{proto}/{svc}': {
+    'CONNECT': function () {
+      return connectService
+    },
+  },
+
   '/api/services': {
     'GET': function () {
       return getServices
@@ -79,10 +85,12 @@ var routes = Object.entries({
 )
 
 var endpoints = {}
+var hubs = {}
 
 var $agent = null
 var $params = null
 var $endpoint = null
+var $hub = null
 var $hubAddr
 var $hubPort
 
@@ -163,17 +171,6 @@ var getEndpoint = pipeline($=>$
   )
 )
 
-var connectEndpoint = pipeline($=>$
-  .acceptHTTPTunnel(
-    function () {
-      $agent.id = $params.ep
-      console.info('Agent session established with ID =', $agent.id)
-      return response(200)
-    }
-  ).to($=>$
-  )
-)
-
 var getServices = pipeline($=>$
   .replaceData()
   .replaceMessage(
@@ -226,6 +223,49 @@ var getService = pipeline($=>$
         endpoints: endpoints.map(({ id, name }) => ({ id, name })),
       })
     }
+  )
+)
+
+var connectEndpoint = pipeline($=>$
+  .acceptHTTPTunnel(
+    function () {
+      var id = $params.ep
+      $agent.id = id
+      $hub = hubs[id] = new pipeline.Hub
+      console.info('Agent pull session established: agent <- hub', id)
+      return response(200)
+    }
+  ).to($=>$
+    .onStart(new Data)
+    .swap(() => $hub)
+  )
+)
+
+var connectService = pipeline($=>$
+  .acceptHTTPTunnel(
+    function () {
+      var id = $params.ep
+      var ep = endpoints[id]
+      if (!ep) return response(404, 'Endpoint not found')
+      var svc = $params.svc
+      var proto = $params.proto
+      if (!ep.services.some(s => s.name === svc && s.protocol === proto)) return response(404, 'Service not found')
+      $hub = hubs[id]
+      if (!$hub) return response(404, 'Agent not found')
+      console.info('Agent push session established: hub -> agent', id)
+      return response(200)
+    }
+  ).to($=>$
+    .connectHTTPTunnel(
+      () => new Message({
+        method: 'CONNECT',
+        path: `/api/services/${$params.proto}/${$params.svc}`,
+      })
+    ).to($=>$
+      .muxHTTP(() => 1, { version: 2 }).to($=>$
+        .swap(() => $hub)
+      )
+    )
   )
 )
 

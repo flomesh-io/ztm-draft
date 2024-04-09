@@ -14,6 +14,12 @@ import Mesh from './mesh.js'
 
 var meshes = {}
 
+function findMesh(name) {
+  var m = meshes[name]
+  if (m) return m
+  throw `Mesh not found: ${name}`
+}
+
 function init() {
   db.allMeshes().forEach(
     function (mesh) {
@@ -22,9 +28,16 @@ function init() {
   )
 
   db.allServices().forEach(
-    function (svc) {
-      var mesh = meshes[svc.mesh]
-      mesh.publishService(svc)
+    function (s) {
+      var mesh = meshes[s.mesh]
+      mesh.publishService(s)
+    }
+  )
+
+  db.allPorts().forEach(
+    function ({ protocol, listen, target }) {
+      var mesh = meshes[target.mesh]
+      mesh.openPort(listen.ip, listen.port, protocol, target.service, target.endpoint)
     }
   )
 }
@@ -131,17 +144,13 @@ function getService(mesh, ep, proto, name) {
 }
 
 function setService(mesh, ep, proto, name, service) {
-  var m = meshes[mesh]
-  if (m) {
-    db.setService(mesh, proto, name, service)
-    m.publishService({ ...service, name, protocol: proto })
-  }
+  findMesh(mesh).publishService({ ...service, name, protocol: proto })
+  db.setService(mesh, proto, name, service)
   return getService(mesh, ep, proto, name)
 }
 
 function delService(mesh, ep, proto, name) {
-  var m = meshes[mesh]
-  if (m) m.deleteService(proto, name)
+  findMesh(mesh).deleteService(proto, name)
   db.delService(mesh, proto, name)
 }
 
@@ -166,11 +175,14 @@ function getPort(mesh, ep, ip, proto, port) {
 }
 
 function setPort(mesh, ep, ip, proto, port, obj) {
+  println(ip, proto, port)
+  findMesh(mesh).openPort(ip, port, proto, obj.service, obj.endpoint)
   db.setPort(ip, proto, port, obj)
   return db.getPort(ip, proto, port)
 }
 
 function delPort(mesh, ep, ip, proto, port) {
+  findMesh(mesh).closePort(ip, port, proto)
   db.delPort(ip, proto, port)
 }
 

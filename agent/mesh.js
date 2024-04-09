@@ -1,6 +1,11 @@
 export default function (agent, bootstraps) {
   var services = []
 
+  //
+  // Class Hub
+  // Management of the interaction with a single hub instance
+  //
+
   function Hub(
     agent,    // Agent { id, name, certificate, privateKey }
     address,  // Hub address
@@ -20,7 +25,13 @@ export default function (agent, bootstraps) {
     // Agent-to-hub connection, multiplexed with HTTP/2
     var hubSession = pipeline($=>$
       .muxHTTP(() => '', { version: 2 }).to($=>$
-        .connect(address)
+        .connect(address, {
+          onState: function (ob) {
+            if (ob.state === 'connected' && serviceList) {
+              updateServiceList(serviceList)
+            }
+          }
+        })
       )
     )
 
@@ -50,13 +61,16 @@ export default function (agent, bootstraps) {
       )
     )
 
+    // Establish a pull session to the hub
     reverseServer.spawn()
 
-    var serviceListUpdate = null
+    var serviceList = null
+    var serviceListUpdateMsg = null
 
     function updateServiceList(list) {
-      var isSending = Boolean(serviceListUpdate)
-      serviceListUpdate = new Message(
+      serviceList = list
+      var isSending = Boolean(serviceListUpdateMsg)
+      serviceListUpdateMsg = new Message(
         {
           method: 'POST',
           path: `/api/services`,
@@ -67,11 +81,11 @@ export default function (agent, bootstraps) {
     }
 
     function sendServiceList() {
-      if (serviceListUpdate) {
-        requestHub.spawn(serviceListUpdate).then(
+      if (serviceListUpdateMsg) {
+        requestHub.spawn(serviceListUpdateMsg).then(
           function (res) {
             if (res && res.head.status === 201) {
-              serviceListUpdate = null
+              serviceListUpdateMsg = null
             } else {
               new Timeout(5).wait().then(sendServiceList)
             }
@@ -117,6 +131,34 @@ export default function (agent, bootstraps) {
       )
     }
 
+    function findEndpoint(ep) {
+      return requestHub.spawn(
+        new Message({ method: 'GET', path: `/api/endpoints/${ep}`})
+      ).then(
+        function (res) {
+          if (res && res.head.status === 200) {
+            return JSON.decode(res.body)
+          } else {
+            return null
+          }
+        }
+      )
+    }
+
+    function findService(svc) {
+      return requestHub.spawn(
+        new Message({ method: 'GET', path: `/api/services/${svc}`})
+      ).then(
+        function (res) {
+          if (res && res.head.status === 200) {
+            return JSON.decode(res.body)
+          } else {
+            return null
+          }
+        }
+      )
+    }
+
     function status() {
       return 'OK'
     }
@@ -129,25 +171,31 @@ export default function (agent, bootstraps) {
       updateServiceList,
       discoverEndpoints,
       discoverServices,
+      findEndpoint,
+      findService,
       status,
       leave,
     }
-  }
 
+  } // End of class Hub
+
+  var matchServices = new http.Match('/api/services/{proto}/{svc}')
   var response200 = new Message({ status: 200 })
   var response404 = new Message({ status: 404 })
-  var matchServices = new http.Match('/api/services/{proto}/{svc}')
 
-  // Agent serving requests from the hub
+  var $requestedService
+  var $selectedEp
+  var $selectedHub
+
+  // Agent serving requests from the hubs
   var agentService = pipeline($=>$
     .demuxHTTP().to($=>$
       .pipe(
         function (evt) {
           if (evt instanceof MessageStart) {
             if (evt.head.method === 'CONNECT') {
-              var params = matchServices(eve.head.path)
-              if (params) return 
-              return agentAccept
+              var params = matchServices(evt.head.path)
+              if (params) return proxyToLocal
             }
             return notFound
           }
@@ -156,21 +204,48 @@ export default function (agent, bootstraps) {
     )
   )
 
-  // Agent accepting tunnels to its services
-  var agentAccept = pipeline($=>$
+  // Agent proxying to local services: mesh -> local
+  var proxyToLocal = pipeline($=>$
     .acceptHTTPTunnel(
       function (req) {
-        var params = matchServices(req.path)
+        var params = matchServices(req.head.path)
         if (params) {
           var protocol = params.proto
           var name = params.svc
-          $service = services.find(s => s.protocol === protocol && s.name === name)
-          if ($service) return response200
+          $requestedService = services.find(s => s.protocol === protocol && s.name === name)
+          if ($requestedService) return response200
         }
         return response404
       }
     ).to($=>$
-      .connect(() => `${$service.host}:${$service.port}`)
+      .connect(() => `${$requestedService.host}:${$requestedService.port}`)
+    )
+  )
+
+  // Agent proxying to remote services: local -> mesh
+  var proxyToMesh = (proto, svc, ep) => pipeline($=>$
+    .onStart(() => {
+      if (ep) {
+        return selectHub(svc, ep).then(hub => {
+          $selectedEp = ep
+          $selectedHub = hub
+        })
+      } else {
+        return selectEndpoint(svc).then(ep => {
+          $selectedEp = ep
+          return selectHub(svc, ep)
+        }).then(hub => { $selectedHub = hub })
+      }
+    })
+    .connectHTTPTunnel(() => (
+      new Message({
+        method: 'CONNECT',
+        path: `/api/endpoints/${$selectedEp}/services/${proto}/${svc}`,
+      })
+    )).to($=>$
+      .muxHTTP(() => 1, { version: 2 }).to($=>$
+        .connect(() => $selectedHub)
+      )
     )
   )
 
@@ -184,6 +259,26 @@ export default function (agent, bootstraps) {
   function heartbeat() {
     hubs.forEach(h => h.heartbeat())
     new Timeout(15).wait().then(heartbeat)
+  }
+
+  function selectEndpoint(svc) {
+    return hubs[0].findService(svc).then(
+      function (service) {
+        if (!service) return null
+        var ep = service.endpoints[0]
+        return ep ? ep.id : null
+      }
+    )
+  }
+
+  function selectHub(svc, ep) {
+    return hubs[0].findEndpoint(ep).then(
+      function (endpoint) {
+        if (!endpoint) return null
+        var hubs = endpoint.hubs
+        return hubs ? hubs[0] : null
+      }
+    )
   }
 
   function discoverEndpoints() {
@@ -227,6 +322,18 @@ export default function (agent, bootstraps) {
     hubs.forEach(hub => hub.updateServiceList(list))
   }
 
+  function openPort(ip, port, protocol, service, endpoint) {
+    switch (protocol) {
+      case 'tcp':
+        pipy.listen(`${ip}:${port}`, proxyToMesh(protocol, service, endpoint))
+        break
+      default: throw `Invalid protocol: ${protocol}`
+    }
+  }
+
+  function closePort(ip, port, protocol) {
+  }
+
   function status() {
     return hubs[0].status()
   }
@@ -242,6 +349,8 @@ export default function (agent, bootstraps) {
     discoverServices,
     publishService,
     deleteService,
+    openPort,
+    closePort,
     status,
     leave,
   }
