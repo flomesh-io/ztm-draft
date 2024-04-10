@@ -11,6 +11,7 @@ import _ from "lodash"
 const emits = defineEmits(['save']);
 
 const selected = ref(null);
+const endpoints = ref([]);
 const route = useRoute();
 const toast = useToast();
 const pipyProxyService = new PipyProxyService();
@@ -19,27 +20,44 @@ const config = ref({
 	name: "",
 	protocol: "tcp",
 	host:'127.0.0.1',
-	port:0
+	ep: null,
+	port:null
 });
 const newConfig = () => {
 	config.value = {
 		name: "",
 		protocol: "tcp",
 		host:'127.0.0.1',
-		port:0
+		ep: null,
+		port:null
 	}
 }
 
+const getEndpoints = () => {
+	pipyProxyService.getEndpoints(selected.value?.name)
+		.then(res => {
+			console.log("Endpoints:")
+			console.log(res)
+			endpoints.value = res || [];
+			if(!!res.find((ep)=> ep.id == selected.value.agent?.id)){
+				config.value.ep = selected.value.agent?.id;
+			} else {
+				config.value.ep = res[0].id;
+			}
+		})
+		.catch(err => console.log('Request Failed', err)); 
+}
 const enabled = computed(() => {
 	return selected.value && config.value.name.length>0 && selected.value && !!selected.value.agent?.id;
 });
 const select = (d) => {
 	selected.value = d;
+	getEndpoints();
 }
 const commit = () => {
 	pipyProxyService.createService({
 		mesh: selected.value.name,
-		ep: selected.value.agent?.id,
+		ep: config.value.ep,
 		name: config.value.name,
 		proto: config.value.protocol,
 		host: config.value.host,
@@ -94,8 +112,19 @@ const home = ref({
 			
 			<div class="surface-section">
 				<ul class="list-none p-0 m-0">
-					
-									
+					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Service</div>
+							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+								<Chip class="pl-0 pr-3 mr-2">
+								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-bookmark"/>
+										</span>
+								    <span class="ml-2 font-medium">
+											<InputText placeholder="Name" class="add-tag-input xl" :unstyled="true" v-model="config.name" type="text" />
+										</span>
+								</Chip>
+							</div>
+					</li>
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
 							<div class="text-500 w-6 md:w-2 font-medium">Mesh</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
@@ -113,14 +142,20 @@ const home = ref({
 							</div>
 					</li>
 					<li class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
-							<div class="text-500 w-6 md:w-2 font-medium">Service</div>
+							<div class="text-500 w-6 md:w-2 font-medium">Endpoint</div>
 							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
 								<Chip class="pl-0 pr-3 mr-2">
-								    <span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
-											<i class="pi pi-bookmark"/>
+										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-chart-scatter"/>
 										</span>
-								    <span class="ml-2 font-medium">
-											<InputText placeholder="Name" class="add-tag-input xl" :unstyled="true" v-model="config.name" type="text" />
+										<span class="font-medium">
+											<Dropdown
+													v-model="config.ep" 
+													:options="endpoints" 
+													optionLabel="name" 
+													optionValue="id"
+													placeholder="Endpoint" 
+													class="flex"></Dropdown>
 										</span>
 								</Chip>
 							</div>
@@ -164,7 +199,7 @@ const home = ref({
 											<i class="pi pi-sort"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											<InputNumber :useGrouping="false" :min="0" :max="65535" placeholder="0-65535" class="add-tag-input" :unstyled="true" v-model="config.port" type="text" />
+											<InputNumber :useGrouping="false" :min="1" :max="65535" placeholder="1-65535" class="add-tag-input" :unstyled="true" v-model="config.port" type="text" />
 										</span>
 								</Chip>
 							</div>

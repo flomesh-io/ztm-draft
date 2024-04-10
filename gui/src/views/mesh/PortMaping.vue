@@ -123,7 +123,7 @@ const home = ref({
 											<i class="pi pi-globe"/>
 										</span>
 										<span class="font-medium ml-2">
-											{{decodeURI(config.target?.mesh)}}
+											{{decodeURI(props.mesh)}}
 										</span>
 								</Chip>
 							</div>
@@ -193,7 +193,7 @@ const home = ref({
 											<i class="pi pi-sort"/>
 										</span>
 								    <span class="ml-2 font-medium">
-											<InputNumber :useGrouping="false" :min="0" :max="65535" placeholder="0-65535" class="add-tag-input" :unstyled="true" v-model="config.listen.port" type="text" />
+											<InputNumber :useGrouping="false" :min="1" :max="65535" placeholder="1-65535" class="add-tag-input" :unstyled="true" v-model="config.listen.port" type="text" />
 										</span>
 								</Chip>
 							</div>
