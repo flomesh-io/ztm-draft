@@ -179,7 +179,7 @@ function getPort(mesh, ep, ip, proto, port) {
 function setPort(mesh, ep, ip, proto, port, obj) {
   findMesh(mesh).openPort(ip, port, proto, obj.target.service, obj.target.endpoint)
   db.setPort(mesh, ip, proto, port, obj)
-  return db.getPort(ip, proto, port)
+  return db.getPort(mesh, ip, proto, port)
 }
 
 function delPort(mesh, ep, ip, proto, port) {
