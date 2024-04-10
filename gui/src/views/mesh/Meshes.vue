@@ -45,7 +45,12 @@ const deleteMesh = (name) => {
 							loaddata();
 						},1000);
 					})
-					.catch(err => console.log('Request Failed', err)); 
+					.catch(err => {
+						console.log('Request Failed', err)
+						setTimeout(()=>{
+							loaddata();
+						},1000);
+					}); 
 	    },
 	    reject: () => {
 	    }

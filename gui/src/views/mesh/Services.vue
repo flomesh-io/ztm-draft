@@ -46,12 +46,20 @@ const deleteService = (service) => {
 					name: service.name,
 					proto: service.protocol,
 					mesh:selectedMesh.value?.name,
-					ep:selectedMesh.value?.agent?.id,
+					ep: service.ep?.id
 				})
 					.then(res => {
-						getServices();
+						console.log('Delete Success', err)
+						setTimeout(()=>{
+							getServices();
+						},1000)
 					})
-					.catch(err => console.log('Request Failed', err)); 
+					.catch(err => {
+						console.log('Request Failed', err)
+						setTimeout(()=>{
+							getServices();
+						},1000)
+					}); 
 	    },
 	    reject: () => {
 	    }
@@ -232,7 +240,7 @@ const savePort = () => {
 															<span class="status-point run mr-4 relative vm" style="top: 12px;" ></span>
 															<div class="flex flex-item align-items-center" :class="{'flex-column': !!service.port || !!service.host}">
 																<div class="text-left w-full " v-tooltip="endpointMap[service.ep?.id]?.name" ><b class="text-ellipsis" style="width: 90%;">{{endpointMap[service.ep?.id]?.name|| 'Unnamed EP'}}</b></div>
-																<div class="text-left w-full" v-if="!!service.port || !!service.host">{{service.host}}{{!!service.port?(`:${service.port}`):''}} | {{service.protocol}}</div>
+																<div class="text-left w-full" v-if="!!service.port || !!service.host"><Tag  severity="contrast" value="Contrast" v-if="service.ep?.isLocal">Local</Tag> <Tag severity="secondary" value="Secondary">{{service.protocol}}</Tag> <span class="relative" style="top: 2px;">{{service.host}}{{!!service.port?(`:${service.port}`):''}}</span> </div>
 															</div>
 														</div>
 													</div>
