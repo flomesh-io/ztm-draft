@@ -188,7 +188,7 @@ export default function (agent, bootstraps) {
   var $selectedHub
 
   // Agent serving requests from the hubs
-  var agentService = pipeline($=>$
+  var serveHub = pipeline($=>$
     .demuxHTTP().to($=>$
       .pipe(
         function (evt) {
@@ -197,12 +197,59 @@ export default function (agent, bootstraps) {
               var params = matchServices(evt.head.path)
               if (params) return proxyToLocal
             }
-            return notFound
+            return serveOtherAgents
           }
         }
       )
     )
   )
+
+  // Agent handling hub-forwarded requests from other agents
+  var serveOtherAgents = function () {
+    var routes = Object.entries({
+      '/api/services': {
+        'GET': function () {},
+      },
+      '/api/services/{proto}/{svc}': {
+        'GET': function () {},
+        'POST': function () {},
+        'DELETE': function () {},
+      },
+      '/api/ports': {
+        'GET': function () {},
+      },
+      '/api/ports/{ip}/{proto}/{port}': {
+        'GET': function () {},
+        'POST': function () {},
+        'DELETE': function () {},
+      },
+    }).map(
+      function ([path, methods]) {
+        var match = new http.Match(path)
+        var handler = function (params, req) {
+          var f = methods[req.head.method]
+          if (f) return f(params, req)
+          return notSupported
+        }
+        return { match, handler }
+      }
+    )
+
+    var notFound = new Message({ status: 404 })
+    var notSupported = new Message({ status: 405 })
+
+    return pipeline($=>$
+      .replaceMessage(
+        function (req) {
+          var params
+          var path = req.head.path
+          var route = routes.find(r => Boolean(params = r.match(path)))
+          if (route) return route.handler(params, req)
+          return notFound
+        }
+      )
+    )
+  }
 
   // Agent proxying to local services: mesh -> local
   var proxyToLocal = pipeline($=>$
@@ -251,7 +298,7 @@ export default function (agent, bootstraps) {
 
   // Connect to all hubs
   var hubs = bootstraps.map(
-    addr => Hub(agent, addr, agentService)
+    addr => Hub(agent, addr, serveHub)
   )
 
   // Start sending heartbeats

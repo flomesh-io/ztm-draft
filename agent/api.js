@@ -35,9 +35,11 @@ function init() {
   )
 
   db.allPorts().forEach(
-    function ({ protocol, listen, target }) {
-      var mesh = meshes[target.mesh]
-      mesh.openPort(listen.ip, listen.port, protocol, target.service, target.endpoint)
+    function (p) {
+      var listen = p.listen
+      var target = p.target
+      var mesh = meshes[p.mesh]
+      mesh.openPort(listen.ip, listen.port, p.protocol, target.service, target.endpoint)
     }
   )
 }
@@ -167,22 +169,22 @@ function delUser(mesh, ep, svc, name) {
 }
 
 function allPorts(mesh, ep) {
-  return db.allPorts()
+  return db.allPorts(mesh)
 }
 
 function getPort(mesh, ep, ip, proto, port) {
-  return db.getPort(ip, proto, port)
+  return db.getPort(mesh, ip, proto, port)
 }
 
 function setPort(mesh, ep, ip, proto, port, obj) {
   findMesh(mesh).openPort(ip, port, proto, obj.target.service, obj.target.endpoint)
-  db.setPort(ip, proto, port, obj)
+  db.setPort(mesh, ip, proto, port, obj)
   return db.getPort(ip, proto, port)
 }
 
 function delPort(mesh, ep, ip, proto, port) {
   findMesh(mesh).closePort(ip, port, proto)
-  db.delPort(ip, proto, port)
+  db.delPort(mesh, ip, proto, port)
 }
 
 export default {

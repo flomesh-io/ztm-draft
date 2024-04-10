@@ -28,10 +28,10 @@ function open(pathname, reset) {
     `)
     db.exec(`
       CREATE TABLE ports (
+        mesh TEXT NOT NULL,
         ip TEXT NOT NULL,
         protocol TEXT NOT NULL,
         port INTEGER NOT NULL,
-        mesh TEXT NOT NULL,
         endpoint TEXT,
         service TEXT NOT NULL
       )
@@ -164,68 +164,79 @@ function delService(mesh, proto, name) {
 
 function recordToPort(rec) {
   return {
+    mesh: rec.mesh,
     protocol: rec.protocol,
     listen: {
       ip: rec.ip,
       port: Number.parseInt(rec.port),
     },
     target: {
-      mesh: rec.mesh,
       endpoint: rec.endpoint,
       service: rec.service,
     }
   }
 }
 
-function allPorts() {
-  return (
-    db.sql('SELECT * FROM ports')
-      .exec()
-      .map(recordToPort)
-  )
+function allPorts(mesh) {
+  if (mesh) {
+    return (
+      db.sql('SELECT * FROM ports WHERE mesh = ?')
+        .bind(1, mesh)
+        .exec()
+        .map(recordToPort)
+    )
+  } else {
+    return (
+      db.sql('SELECT * FROM ports')
+        .exec()
+        .map(recordToPort)
+    )
+  }
 }
 
-function getPort(ip, proto, port) {
+function getPort(mesh, ip, proto, port) {
   return (
-    db.sql('SELECT * FROM ports WHERE ip = ? AND protocol = ? AND port = ?')
-      .bind(1, ip)
-      .bind(2, proto)
-      .bind(3, port)
+    db.sql('SELECT * FROM ports WHERE mesh = ? AND ip = ? AND protocol = ? AND port = ?')
+      .bind(1, mesh)
+      .bind(2, ip)
+      .bind(3, proto)
+      .bind(4, port)
       .exec()
       .slice(0, 1)
       .map(recordToPort)[0]
   )
 }
 
-function setPort(ip, proto, port, obj) {
+function setPort(mesh, ip, proto, port, obj) {
   var target = obj.target
   var old = getPort(ip, proto, port)
   if (old) {
-    db.sql('UPDATE ports SET mesh = ?, endpoint = ?, service = ? WHERE ip = ? AND protocol = ? AND port = ?')
-      .bind(1, target.mesh)
-      .bind(2, target.endpoint)
-      .bind(3, target.service)
+    db.sql('UPDATE ports SET endpoint = ?, service = ? WHERE mesh = ? AND ip = ? AND protocol = ? AND port = ?')
+      .bind(1, target.endpoint)
+      .bind(2, target.service)
+      .bind(3, mesh)
       .bind(4, ip)
       .bind(5, proto)
       .bind(6, port)
       .exec()
   } else {
-    db.sql('INSERT INTO ports(ip, protocol, port, mesh, endpoint, service) VALUES(?, ?, ?, ?, ?, ?)')
-      .bind(1, ip)
-      .bind(2, proto)
-      .bind(3, port)
-      .bind(4, target.mesh)
+    db.sql('INSERT INTO ports(mesh, ip, protocol, port, endpoint, service) VALUES(?, ?, ?, ?, ?, ?)')
+      .bind(1, mesh)
+      .bind(2, ip)
+      .bind(3, proto)
+      .bind(4, port)
       .bind(5, target.endpoint)
       .bind(6, target.service)
       .exec()
   }
 }
 
-function delPort(ip, proto, port) {
-  db.sql('DELETE FROM ports WHERE ip = ? AND protocol = ? AND port = ?')
-    .bind(1, ip)
-    .bind(2, proto)
-    .bind(3, port)
+function delPort(mesh, ip, proto, port) {
+  db.sql('DELETE FROM ports WHERE mesh = ? AND ip = ? AND protocol = ? AND port = ?')
+    .bind(1, mesh)
+    .bind(2, ip)
+    .bind(3, proto)
+    .bind(4, port)
     .exec()
 }
 

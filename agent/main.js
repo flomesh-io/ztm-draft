@@ -178,7 +178,6 @@ var routes = Object.entries({
   //     ip: string
   //     port: number
   //   target:
-  //     mesh: string
   //     endpoint: string?
   //     service: string
   //
