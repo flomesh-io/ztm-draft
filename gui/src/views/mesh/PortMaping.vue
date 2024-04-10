@@ -41,7 +41,6 @@ const config = ref({
 		port:props.servicePort,
 	},
 	target: {
-		mesh: props.mesh,
 		endpoint: props.targetEndpoint?.id,
 		service: props.service,
 	}
@@ -54,7 +53,6 @@ const newConfig = () => {
 			port:props.servicePort,
 		},
 		target: {
-			mesh: props.mesh,
 			endpoint: props.targetEndpoint?.id,
 			service: props.service,
 		}
