@@ -99,44 +99,54 @@ function allEndpoints(mesh) {
 }
 
 function allServices(mesh, ep) {
-  mesh = meshes[mesh]
-  if (!mesh) return Promise.resolve([])
-  return mesh.discoverServices(ep).then(
-    function (list) {
-      list.forEach(svc => {
-        svc.isDiscovered = true
-        svc.isLocal = false
-      })
-      if (!ep || ep === mesh.agent.id) {
-        db.allServices().forEach(
-          function (local) {
-            var name = local.name
-            var protocol = local.protocol
-            var svc = list.find(s => s.name === name && s.protocol === protocol)
-            if (svc) {
-              svc.isLocal = true
-              svc.host = local.host
-              svc.port = local.port
-            } else {
-              list.push({
-                name,
-                protocol,
-                endpoints: [{
-                  id: mesh.agent.id,
-                  name: mesh.agent.name,
-                }],
-                isDiscovered: false,
-                isLocal: true,
-                host: local.host,
-                port: local.port,
-              })
+  var m = findMesh(mesh)
+  if (!m) return Promise.resolve([])
+  if (ep && ep !== m.agent.id) {
+    return m.remoteQueryServices(ep)
+  } else {
+    return m.discoverServices(ep).then(
+      function (list) {
+        list.forEach(svc => {
+          svc.isDiscovered = true
+          svc.isLocal = false
+        })
+        if (!ep || ep === m.agent.id) {
+          db.allServices().forEach(
+            function (local) {
+              var name = local.name
+              var protocol = local.protocol
+              var svc = list.find(s => s.name === name && s.protocol === protocol)
+              if (svc) {
+                svc.isLocal = true
+                svc.host = local.host
+                svc.port = local.port
+              } else {
+                list.push({
+                  name,
+                  protocol,
+                  endpoints: [{
+                    id: m.agent.id,
+                    name: m.agent.name,
+                  }],
+                  isDiscovered: false,
+                  isLocal: true,
+                  host: local.host,
+                  port: local.port,
+                })
+              }
             }
-          }
-        )
+          )
+        }
+        var id = m.agent.id
+        list.forEach(svc => (
+          svc.endpoints.forEach(ep => {
+            if (ep.id === id) ep.isLocal = true
+          })
+        ))
+        return list
       }
-      return list
-    }
-  )
+    )
+  }
 }
 
 function getService(mesh, ep, proto, name) {
@@ -146,14 +156,26 @@ function getService(mesh, ep, proto, name) {
 }
 
 function setService(mesh, ep, proto, name, service) {
-  findMesh(mesh).publishService({ ...service, name, protocol: proto })
-  db.setService(mesh, proto, name, service)
-  return getService(mesh, ep, proto, name)
+  var m = findMesh(mesh)
+  if (ep && ep !== m.agent.id) {
+    return m.remotePublishService(ep, proto, name, service).then(
+      () => getService(mesh, ep, proto, name)
+    )
+  } else {
+    m.publishService({ ...service, name, protocol: proto })
+    db.setService(mesh, proto, name, service)
+    return getService(mesh, ep, proto, name)
+  }
 }
 
 function delService(mesh, ep, proto, name) {
-  findMesh(mesh).deleteService(proto, name)
-  db.delService(mesh, proto, name)
+  var m = findMesh(mesh)
+  if (ep && ep !== m.agent.id) {
+    m.remoteDeleteService(ep, proto, name)
+  } else {
+    m.deleteService(proto, name)
+    db.delService(mesh, proto, name)
+  }
 }
 
 function allUsers(mesh, ep, svc) {

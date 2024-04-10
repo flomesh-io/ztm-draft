@@ -382,6 +382,17 @@ export default function (agent, bootstraps) {
     pipy.listen(`${ip}:${port}`, protocol, null)
   }
 
+  function remoteQueryServices(ep) {
+    return Promise.resolve([])
+  }
+
+  function remotePublishService(ep, proto, name, service) {
+    return Promise.resolve({})
+  }
+
+  function remoteDeleteService(ep, proto, name) {
+  }
+
   function status() {
     return hubs[0].status()
   }
@@ -399,6 +410,12 @@ export default function (agent, bootstraps) {
     deleteService,
     openPort,
     closePort,
+    remoteQueryServices,
+    remotePublishService,
+    remoteDeleteService,
+    // remoteQueryPorts,
+    // remoteOpenPort,
+    // remoteClosePort,
     status,
     leave,
   }
