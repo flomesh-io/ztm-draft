@@ -1,4 +1,6 @@
-export default function (agent, bootstraps) {
+import db from './db.js'
+
+export default function (meshName, agent, bootstraps) {
   var services = []
 
   //
@@ -205,22 +207,40 @@ export default function (agent, bootstraps) {
   )
 
   // Agent handling hub-forwarded requests from other agents
-  var serveOtherAgents = function () {
+  var serveOtherAgents = (function() {
     var routes = Object.entries({
+
       '/api/services': {
         'GET': function () {},
       },
+
       '/api/services/{proto}/{svc}': {
-        'GET': function () {},
-        'POST': function () {},
-        'DELETE': function () {},
+        'GET': function () {
+          return response(200, db.getService(meshName, params.proto, params.svc))
+        },
+
+        'POST': function (params, req) {
+          publishService(params.proto, params.svc)
+          db.setService(meshName, params.proto, params.svc, JSON.decode(req.body))
+          return response(201, db.getService(meshName, params.proto, params.svc))
+        },
+
+        'DELETE': function (params) {
+          deleteService(params.proto, params.svc)
+          db.delService(meshName, params.proto, params.svc)
+          return response(204)
+        },
       },
+
       '/api/ports': {
         'GET': function () {},
       },
+
       '/api/ports/{ip}/{proto}/{port}': {
         'GET': function () {},
+
         'POST': function () {},
+
         'DELETE': function () {},
       },
     }).map(
@@ -229,14 +249,11 @@ export default function (agent, bootstraps) {
         var handler = function (params, req) {
           var f = methods[req.head.method]
           if (f) return f(params, req)
-          return notSupported
+          return response(405)
         }
         return { match, handler }
       }
     )
-
-    var notFound = new Message({ status: 404 })
-    var notSupported = new Message({ status: 405 })
 
     return pipeline($=>$
       .replaceMessage(
@@ -245,11 +262,11 @@ export default function (agent, bootstraps) {
           var path = req.head.path
           var route = routes.find(r => Boolean(params = r.match(path)))
           if (route) return route.handler(params, req)
-          return notFound
+          return response(404)
         }
       )
     )
-  }
+  })()
 
   // Agent proxying to local services: mesh -> local
   var proxyToLocal = pipeline($=>$
@@ -387,10 +404,28 @@ export default function (agent, bootstraps) {
   }
 
   function remotePublishService(ep, proto, name, service) {
-    return Promise.resolve({})
+    return selectHub(ep).then(
+      function (hub) {
+        if (!hub) throw `No hub for endpoint ${ep}`
+        return new http.Agent(hub).request(
+          'POST', `/api/forward/${ep}/services/${proto}/${name}`,
+          {}, JSON.encode(service)
+        ).then(
+          res => res?.head?.status === 201 ? JSON.decode(res.body) : null
+        )
+      }
+    )
   }
 
   function remoteDeleteService(ep, proto, name) {
+    return selectHub(ep).then(
+      function (hub) {
+        if (!hub) throw `No hub for endpoint ${ep}`
+        return new http.Agent(hub).request(
+          'DELETE', `/api/forward/${ep}/services/${proto}/${name}`
+        )
+      }
+    )
   }
 
   function status() {
@@ -419,4 +454,20 @@ export default function (agent, bootstraps) {
     status,
     leave,
   }
+}
+
+function response(status, body) {
+  if (!body) return new Message({ status })
+  if (typeof body === 'string') return responseCT(status, 'text/plain', body)
+  return responseCT(status, 'application/json', JSON.encode(body))
+}
+
+function responseCT(status, ct, body) {
+  return new Message(
+    {
+      status,
+      headers: { 'content-type': ct }
+    },
+    body
+  )
 }

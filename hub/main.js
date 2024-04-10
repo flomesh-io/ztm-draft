@@ -23,53 +23,39 @@ if (options['--help']) {
 var routes = Object.entries({
 
   '/api/status': {
-    'POST': function () {
-      return findCurrentEndpointSession() ? postStatus : noSession
-    },
+    'POST': () => findCurrentEndpointSession() ? postStatus : noSession,
   },
 
   '/api/endpoints': {
-    'GET': function () {
-      return getEndpoints
-    },
+    'GET': () => getEndpoints,
   },
 
   '/api/endpoints/{ep}': {
-    'GET': function () {
-      return getEndpoint
-    },
-
-    'CONNECT': function () {
-      return connectEndpoint
-    },
+    'GET': () => getEndpoint,
+    'CONNECT': () => connectEndpoint,
   },
 
   '/api/endpoints/{ep}/services': {
-    'GET': function () {
-      return getServices
-    },
+    'GET': () => getServices,
   },
 
   '/api/endpoints/{ep}/services/{proto}/{svc}': {
-    'CONNECT': function () {
-      return connectService
-    },
+    'CONNECT': () => connectService,
   },
 
   '/api/services': {
-    'GET': function () {
-      return getServices
-    },
-
-    'POST': function () {
-      return findCurrentEndpointSession() ? postServices : noSession
-    },
+    'GET': () => getServices,
+    'POST': () => findCurrentEndpointSession() ? postServices : noSession,
   },
 
   '/api/services/{proto}/{svc}': {
-    'GET': function () {
-      return getService
-    },
+    'GET': () => getService,
+  },
+
+  '/api/forward/{ep}/*': {
+    'GET': () => forwardRequest,
+    'POST': () => forwardRequest,
+    'DELETE': () => forwardRequest,
   },
 
 }).map(
@@ -227,6 +213,12 @@ var getService = pipeline($=>$
   )
 )
 
+var muxToAgent = pipeline($=>$
+  .muxHTTP(() => 1, { version: 2 }).to($=>$
+    .swap(() => $hub)
+  )
+)
+
 var connectEndpoint = pipeline($=>$
   .acceptHTTPTunnel(
     function () {
@@ -262,11 +254,24 @@ var connectService = pipeline($=>$
         method: 'CONNECT',
         path: `/api/services/${$params.proto}/${$params.svc}`,
       })
-    ).to($=>$
-      .muxHTTP(() => 1, { version: 2 }).to($=>$
-        .swap(() => $hub)
-      )
-    )
+    ).to(muxToAgent)
+  )
+)
+
+var forwardRequest = pipeline($=>$
+  .pipe(
+    function (req) {
+      if (req instanceof MessageStart) {
+        var id = $params.ep
+        var ep = endpoints[id]
+        if (!ep) return notFound
+        $hub = hubs[id]
+        if (!$hub) return notFound
+        var path = $params['*']
+        req.head.path = `/api/${path}`
+        return muxToAgent
+      }
+    }
   )
 )
 

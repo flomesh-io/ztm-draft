@@ -23,7 +23,7 @@ function findMesh(name) {
 function init() {
   db.allMeshes().forEach(
     function (mesh) {
-      meshes[mesh.name] = Mesh(mesh.agent, mesh.bootstraps)
+      meshes[mesh.name] = Mesh(mesh.name, mesh.agent, mesh.bootstraps)
     }
   )
 
@@ -158,9 +158,7 @@ function getService(mesh, ep, proto, name) {
 function setService(mesh, ep, proto, name, service) {
   var m = findMesh(mesh)
   if (ep && ep !== m.agent.id) {
-    return m.remotePublishService(ep, proto, name, service).then(
-      () => getService(mesh, ep, proto, name)
-    )
+    return m.remotePublishService(ep, proto, name, service)
   } else {
     m.publishService({ ...service, name, protocol: proto })
     db.setService(mesh, proto, name, service)
@@ -171,10 +169,11 @@ function setService(mesh, ep, proto, name, service) {
 function delService(mesh, ep, proto, name) {
   var m = findMesh(mesh)
   if (ep && ep !== m.agent.id) {
-    m.remoteDeleteService(ep, proto, name)
+    return m.remoteDeleteService(ep, proto, name)
   } else {
     m.deleteService(proto, name)
     db.delService(mesh, proto, name)
+    return Promise.resolve()
   }
 }
 

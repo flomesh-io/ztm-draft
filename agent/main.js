@@ -150,8 +150,7 @@ var routes = Object.entries({
     },
 
     'DELETE': function ({ mesh, ep, proto, svc }) {
-      api.delService(mesh, ep, proto, svc)
-      return response(204)
+      return api.delService(mesh, ep, proto, svc).then(response(204))
     },
   },
 
