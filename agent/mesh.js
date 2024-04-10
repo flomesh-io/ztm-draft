@@ -145,9 +145,9 @@ export default function (agent, bootstraps) {
       )
     }
 
-    function findService(svc) {
+    function findService(proto, svc) {
       return requestHub.spawn(
-        new Message({ method: 'GET', path: `/api/services/${svc}`})
+        new Message({ method: 'GET', path: `/api/services/${proto}/${svc}`})
       ).then(
         function (res) {
           if (res && res.head.status === 200) {
@@ -226,14 +226,14 @@ export default function (agent, bootstraps) {
   var proxyToMesh = (proto, svc, ep) => pipeline($=>$
     .onStart(() => {
       if (ep) {
-        return selectHub(svc, ep).then(hub => {
+        return selectHub(ep).then(hub => {
           $selectedEp = ep
           $selectedHub = hub
         })
       } else {
-        return selectEndpoint(svc).then(ep => {
+        return selectEndpoint(proto, svc).then(ep => {
           $selectedEp = ep
-          return selectHub(svc, ep)
+          return selectHub(ep)
         }).then(hub => { $selectedHub = hub })
       }
     })
@@ -261,8 +261,8 @@ export default function (agent, bootstraps) {
     new Timeout(15).wait().then(heartbeat)
   }
 
-  function selectEndpoint(svc) {
-    return hubs[0].findService(svc).then(
+  function selectEndpoint(proto, svc) {
+    return hubs[0].findService(proto, svc).then(
       function (service) {
         if (!service) return null
         var ep = service.endpoints[0]
@@ -271,7 +271,7 @@ export default function (agent, bootstraps) {
     )
   }
 
-  function selectHub(svc, ep) {
+  function selectHub(ep) {
     return hubs[0].findEndpoint(ep).then(
       function (endpoint) {
         if (!endpoint) return null
@@ -332,6 +332,7 @@ export default function (agent, bootstraps) {
   }
 
   function closePort(ip, port, protocol) {
+    pipy.listen(`${ip}:${port}`, protocol, null)
   }
 
   function status() {

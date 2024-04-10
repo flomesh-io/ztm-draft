@@ -201,7 +201,8 @@ var getServices = pipeline($=>$
 var postServices = pipeline($=>$
   .replaceMessage(
     function (req) {
-      $endpoint.services = JSON.decode(req.body)
+      var services = JSON.decode(req.body)
+      $endpoint.services = services instanceof Array ? services : []
       return new Message({ status: 201 })
     }
   )
@@ -211,16 +212,16 @@ var getService = pipeline($=>$
   .replaceData()
   .replaceMessage(
     function () {
-      var name = $param.svc
-      var protocol = $param.proto
-      var endpoints = Object.values(endpoints).filter(
+      var name = $params.svc
+      var protocol = $params.proto
+      var providers = Object.values(endpoints).filter(
         ep => ep.services.some(s => s.name === name && s.protocol === protocol)
       )
-      if (endpoints.length === 0) return response(404)
+      if (providers.length === 0) return response(404)
       return response(200, {
         name,
         protocol,
-        endpoints: endpoints.map(({ id, name }) => ({ id, name })),
+        endpoints: providers.map(({ id, name }) => ({ id, name })),
       })
     }
   )
@@ -288,7 +289,7 @@ function findCurrentEndpointSession() {
   if (!$agent.id) return false
   $endpoint = endpoints[$agent.id]
   if (!$endpoint) {
-    $endpoint = endpoints[$agent.id] = { ...$agent }
+    $endpoint = endpoints[$agent.id] = { ...$agent, services: [] }
     $endpoint.hubs = [`${$hubAddr}:${$hubPort}`]
   }
   return true
