@@ -10,11 +10,11 @@ const route = useRoute();
 
 const cmdType = ref('download');
 const msg = {
-	download: 'Typing the download address please...',
-	ping: 'Typing the ping IP address please...',
-	scan: 'Typing the scan IP address please...',
-	'os': 'Typing the OS query please...',
-	'db': 'Typing the sqllite query please...',
+	download: 'Type the download address please...',
+	ping: 'Type the ping IP address please...',
+	scan: 'Type the scan IP address please...',
+	'os': 'Type the OS query please...',
+	'db': 'Type the sqllite query please...',
 }
 
 const info = ref({

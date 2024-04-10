@@ -109,7 +109,7 @@ const home = ref({
 
 <template>
 	<div >
-		<BlockViewer text="Json" header="Mapping Port" containerClass="surface-section px-3 py-3 md:px-4 lg:px-5" >
+		<BlockViewer text="Json" header="Map to Local Port" containerClass="surface-section px-3 py-3 md:px-4 lg:px-5" >
 			<template #actions>
 				<Button class="mr-2" label="Cancel" size="small" link @click="cancel"/>
 				<Button :disabled="!enabled" label="Save" aria-label="Submit" size="small" @click="commit"/>

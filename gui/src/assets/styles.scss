@@ -444,6 +444,14 @@ pre.app-code code{
 	flex: 1;
 	justify-self: center;
 }
+.refresh-icon{
+	position: relative;
+	top: 1px;
+	opacity: 0.7;
+}
+.refresh-icon:hover{
+	opacity: 1;
+}
 .spiner{
 	position: relative;
 	-webkit-animation: fa-spin 2s infinite linear;

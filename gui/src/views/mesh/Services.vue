@@ -6,9 +6,10 @@ import ServiceCreate from './ServiceCreate.vue'
 import MeshSelector from './common/MeshSelector.vue'
 import PortMaping from './PortMaping.vue'
 import { useConfirm } from "primevue/useconfirm";
+import store from "@/store";
+
 const confirm = useConfirm();
 const router = useRouter();
-import store from "@/store";
 const pipyProxyService = new PipyProxyService();
 const services = ref([]);
 const endpointMap = ref({});
@@ -20,6 +21,7 @@ const meshes = computed(() => {
 });
 const selectedMesh = ref(null);
 const loading = ref(false);
+const loader = ref(false);
 const select = (selected) => {
 	selectedMesh.value = selected;
 	getServices();
@@ -70,6 +72,7 @@ const getEndpoints = () => {
 const getServices = () => {
 	active.value = 0;
 	loading.value = true;
+	loader.value = true;
 	if(!!selectedMesh.value){
 		pipyProxyService.getServices({
 			mesh:selectedMesh.value?.name
@@ -78,6 +81,9 @@ const getServices = () => {
 				console.log("services:")
 				console.log(res)
 				loading.value = false;
+				setTimeout(() => {
+					loader.value = false;
+				},2000)
 				services.value = res || [];
 			})
 			.catch(err => console.log('Request Failed', err)); 
@@ -173,23 +179,22 @@ const savePort = () => {
 					innerClass="transparent" 
 					@load="load" 
 					@select="select"/>
-				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service | host" rows="1" cols="30" />
+				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Type service | host" rows="1" cols="30" />
 				<Button :disabled="!typing" icon="pi pi-search"  @click="clickSearch"/>
 			</InputGroup>
 		</template>
 	</Card>
-		
-	<Loading v-if="loading"/>
-	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+	
+	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 		<TabPanel>
 			<template #header>
-				<div @click="loaddata">
+				<div>
 					<i class="pi pi-sitemap mr-2" />Services
+					<i @click="getServices" class="pi pi-refresh ml-2 refresh-icon" :class="{'spiner':loader}"/>
 				</div>
 			</template>
-			<div class="text-center">
-				
-	
+			<Loading v-if="loading"/>
+			<div v-else class="text-center">
 				<div class="grid text-left" v-if="servicesLb && servicesLb.length >0">
 						<div class="col-12 md:col-6 lg:col-4" v-for="(lb,hid) in servicesLb" :key="hid">
 							 <div class="surface-card shadow-2 p-3 border-round">
@@ -205,7 +210,7 @@ const savePort = () => {
 													 style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-check-circle text-green-500 text-xl"></i>
 												 </div>
-												 <div v-else v-tooltip="'Mapping Port'"  @click="mappingPort({service: lb[0]})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
+												 <div v-else v-tooltip="'Map to Local Port'"  @click="mappingPort({service: lb[0]})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2.5rem; height: 2.5rem">
 														 <i class="pi pi-circle text-primary-500 text-xl"></i>
 												 </div>
 											 </div>
@@ -239,7 +244,7 @@ const savePort = () => {
 															style="width: 2rem; height: 2rem">
 																<i class="pi pi-check-circle text-green-500 text-xl"></i>
 														</div>
-														<div v-else v-tooltip="'Mapping Port'" @click="mappingPort({service: service,ep:{id:service.ep?.id, name: (endpointMap[service.ep?.id]?.name|| 'Unnamed EP')}})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2rem; height: 2rem">
+														<div v-else v-tooltip="'Map to Local Port by EP'" @click="mappingPort({service: service,ep:{id:service.ep?.id, name: (endpointMap[service.ep?.id]?.name|| 'Unnamed EP')}})" class="pointer flex align-items-center justify-content-center bg-primary-100 border-round mr-2" style="width: 2rem; height: 2rem">
 															<i class="pi pi-circle text-primary-500 text-xl"></i>
 														</div>
 														<div v-tooltip.top="'Delete'" @click="deleteService(service)" class="pointer flex align-items-center justify-content-center bg-gray-100 border-round" style="width: 2rem; height: 2rem">

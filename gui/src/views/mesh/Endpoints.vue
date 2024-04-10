@@ -10,6 +10,7 @@ const router = useRouter();
 const pipyProxyService = new PipyProxyService();
 const confirm = useConfirm();
 const loading = ref(false);
+const loader = ref(false);
 const status = ref({});
 const endpoints = ref([]);
 const selectedMesh = ref(null);
@@ -30,11 +31,15 @@ const select = (selected) => {
 }
 const getEndpoints = () => {
 	loading.value = true;
+	loader.value = true;
 	pipyProxyService.getEndpoints(selectedMesh.value?.name)
 		.then(res => {
 			console.log("Endpoints:")
 			console.log(res)
 			loading.value = false;
+			setTimeout(() => {
+				loader.value = false;
+			},2000)
 			endpoints.value = res || [];
 			endpoints.value.forEach((ep,ei)=>{
 				ep.key = `${ei}`;
@@ -88,15 +93,16 @@ const expand = (node) => {
 			</InputGroup>
 		</template>
 	</Card>
-	<Loading v-if="loading"/>
-	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 		<TabPanel>
 			<template #header>
-				<div @click="getEndpoints">
+				<div>
 					<i class="pi pi-chart-scatter mr-2"/> Endpoints
+					<i @click="getEndpoints" class="pi pi-refresh ml-2 refresh-icon" :class="{'spiner':loader}"/>
 				</div>
 			</template>
-			<div class="text-center">
+			<Loading v-if="loading"/>
+			<div v-else class="text-center">
 				<Tree 
 					v-if="endpoints && endpoints.length >0" 
 					:value="endpoints" 

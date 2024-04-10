@@ -10,6 +10,7 @@ const router = useRouter();
 const pipyProxyService = new PipyProxyService();
 const confirm = useConfirm();
 const loading = ref(false);
+const loader = ref(false);
 const status = ref({});
 const endpointMap = ref({});
 const ports = ref([])
@@ -70,6 +71,7 @@ const getEndpoints = () => {
 
 const getPorts = () => {
 	loading.value = true;
+	loader.value = true;
 	setTimeout(()=>{
 		pipyProxyService.getPorts({
 			mesh:selectedMesh.value?.name,
@@ -79,6 +81,9 @@ const getPorts = () => {
 				console.log("ports:")
 				console.log(res)
 				loading.value = false;
+				setTimeout(() => {
+					loader.value = false;
+				},1400)
 				ports.value = res || [];
 			})
 			.catch(err => console.log('Request Failed', err)); 
@@ -107,20 +112,22 @@ const active = ref(0);
 					innerClass="transparent" 
 					@load="load" 
 					@select="select"/>
-				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Typing service | port" rows="1" cols="30" />
+				<Textarea @keyup="watchEnter" v-model="typing" :autoResize="true" class="drak-input bg-gray-900 text-white" placeholder="Type service | port" rows="1" cols="30" />
 				<Button :disabled="!typing" icon="pi pi-search"  @click="clickSearch"/>
 			</InputGroup>
 		</template>
 	</Card>
-	<Loading v-if="loading"/>
-	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+	
+	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 		<TabPanel>
 			<template #header>
-				<div @click="getPorts">
+				<div>
 					<i class="pi pi-bullseye mr-2"/> Ports
+					<i @click="getPorts" class="pi pi-refresh ml-2 refresh-icon" :class="{'spiner':loader}"/>
 				</div>
 			</template>
-			<div class="text-center">
+			<Loading v-if="loading"/>
+			<div v-else class="text-center">
 				<div class="grid text-left" v-if="portsFilter && portsFilter.length >0">
 						<div class="col-12 md:col-6 lg:col-3" v-for="(port,hid) in portsFilter" :key="hid">
 							 <div class="surface-card shadow-2 p-3 border-round">

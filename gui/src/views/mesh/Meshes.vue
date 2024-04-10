@@ -15,13 +15,18 @@ onMounted(() => {
 	loaddata();
 });
 const loading = ref(false);
+const loader = ref(false);
 const loaddata = () => {
 	active.value = 0;
 	loading.value = true;
+	loader.value = true;
 	pipyProxyService.getMeshes()
 		.then(res => {
 			console.log(res);
 			loading.value = false;
+			setTimeout(() => {
+				loader.value = false;
+			},2000)
 			meshes.value = res;
 			store.commit('account/setMeshes', res);
 		})
@@ -36,7 +41,9 @@ const deleteMesh = (name) => {
 				pipyProxyService.deleteMesh(name)
 					.then(res => {
 						console.log(res);
-						loaddata();
+						setTimeout(()=>{
+							loaddata();
+						},1000);
 					})
 					.catch(err => console.log('Request Failed', err)); 
 	    },
@@ -51,21 +58,25 @@ const changeStatus = (mesh,val) => {
 const active = ref(0);
 const join = () => {
 	active.value = 0;
-	loaddata();
+	setTimeout(()=>{
+		loaddata();
+	},1000);
 }
 </script>
 
 <template>
 	
-	<Loading v-if="loading"/>
-	<TabView v-else class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
+	
+	<TabView class="pt-3 pl-3 pr-3" v-model:activeIndex="active">
 	    <TabPanel>
 				<template #header>
-					<div @click="loaddata">
+					<div>
 						<i class="pi pi-star-fill mr-2" style="color: orange;"/>My Meshes
+						<i @click="loaddata" class="pi pi-refresh ml-2 refresh-icon" :class="{'spiner':loader}"/>
 					</div>
 				</template>
-				<div class="text-center">
+				<Loading v-if="loading"/>
+				<div v-else class="text-center">
 					<div class="grid text-left" v-if="meshes && meshes.length >0">
 							<div class="col-12 md:col-6 lg:col-3" v-for="(mesh,hid) in meshes" :key="hid">
 	               <div class="surface-card shadow-2 p-3 border-round">
@@ -90,7 +101,7 @@ const join = () => {
 													<i class="pi pi-pencil text-gray-500 text-xl"></i>
 												</div> -->
 	                   </div>
-	                    <span class="text-500">Boorstrap: </span>
+	                    <span class="text-500">Hubs: </span>
 											<span class="text-green-500"><Badge v-tooltip="mesh.bootstraps.join('\n')" class="relative" style="top:-2px" :value="mesh.bootstraps.length"></Badge></span>
 	               </div>
 	           </div>
