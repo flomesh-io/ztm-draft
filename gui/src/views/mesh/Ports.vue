@@ -146,13 +146,13 @@ const active = ref(0);
 											 </div>
 									 </div>
 										<Fieldset legend="Target" :toggleable="true" >
-											<div class="mb-2">
+											<div class="mb-2" v-if="port?.mesh">
 												<Chip class="pl-0 pr-3 mr-2">
 														<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 															<i class="pi pi-globe"/>
 														</span>
 														<span class="font-medium ml-2">
-															Mesh: {{decodeURI(port.target?.mesh)}}
+															Mesh: {{decodeURI(port.mesh)}}
 														</span>
 												</Chip>
 											</div>
