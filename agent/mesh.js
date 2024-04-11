@@ -319,7 +319,11 @@ export default function (meshName, agent, bootstraps) {
           var protocol = params.proto
           var name = params.svc
           $requestedService = services.find(s => s.protocol === protocol && s.name === name)
-          if ($requestedService) return response200
+          if ($requestedService) {
+            console.info(`Proxy to local service ${name}`)
+            return response200
+          }
+          console.info(`Local service ${name} not found`)
         }
         return response404
       }
@@ -364,7 +368,7 @@ export default function (meshName, agent, bootstraps) {
             path: `/api/endpoints/${$selectedEp}/services/${proto}/${svc}`,
           })
         )).to($=>$
-          .muxHTTP(() => 1, { version: 2 }).to($=>$
+          .muxHTTP(() => $selectedHub, { version: 2 }).to($=>$
             .connect(() => $selectedHub)
           )
         )
@@ -387,6 +391,8 @@ export default function (meshName, agent, bootstraps) {
     hubs.forEach(h => h.heartbeat())
     new Timeout(15).wait().then(heartbeat)
   }
+
+  console.info(`Joined ${meshName} as ${agent.name} (uuid = ${agent.id})`)
 
   function selectEndpoint(proto, svc) {
     return hubs[0].findService(proto, svc).then(

@@ -73,6 +73,11 @@ var routes = Object.entries({
 var endpoints = {}
 var hubs = {}
 
+function endpointName(id) {
+  var ep = endpoints[id]
+  return ep?.name ? `${ep.name} (uuid = ${id})` : id
+}
+
 var $agent = null
 var $params = null
 var $endpoint = null
@@ -188,7 +193,20 @@ var postServices = pipeline($=>$
   .replaceMessage(
     function (req) {
       var services = JSON.decode(req.body)
-      $endpoint.services = services instanceof Array ? services : []
+      var oldList = $endpoint.services || []
+      var newList = services instanceof Array ? services : []
+      var who = endpointName($endpoint.id)
+      newList.forEach(({ name, protocol }) => {
+        if (!oldList.some(s => s.name === name && s.protocol === protocol)) {
+          console.info(`Service ${name} published by ${who}`)
+        }
+      })
+      oldList.forEach(({ name, protocol }) => {
+        if (!newList.some(s => s.name === name && s.protocol === protocol)) {
+          console.info(`Service ${name} deleted by ${who}`)
+        }
+      })
+      $endpoint.services = newList
       return new Message({ status: 201 })
     }
   )
@@ -214,7 +232,7 @@ var getService = pipeline($=>$
 )
 
 var muxToAgent = pipeline($=>$
-  .muxHTTP(() => 1, { version: 2 }).to($=>$
+  .muxHTTP(() => $hub, { version: 2 }).to($=>$
     .swap(() => $hub)
   )
 )
@@ -225,12 +243,13 @@ var connectEndpoint = pipeline($=>$
       var id = $params.ep
       $agent.id = id
       $hub = hubs[id] = new pipeline.Hub
-      console.info('Agent pull session established: agent <- hub', id)
+      console.info(`Endpoint ${endpointName(id)} joined`)
       return response(200)
     }
   ).to($=>$
     .onStart(new Data)
     .swap(() => $hub)
+    .onEnd(() => console.info(`Endpoint ${endpointName($agent.id)} left`))
   )
 )
 
@@ -245,7 +264,7 @@ var connectService = pipeline($=>$
       if (!ep.services.some(s => s.name === svc && s.protocol === proto)) return response(404, 'Service not found')
       $hub = hubs[id]
       if (!$hub) return response(404, 'Agent not found')
-      console.info('Agent push session established: hub -> agent', id)
+      console.info(`Forward to ${svc} at ${endpointName(id)}`)
       return response(200)
     }
   ).to($=>$
