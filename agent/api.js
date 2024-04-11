@@ -30,7 +30,7 @@ function init() {
   db.allServices().forEach(
     function (s) {
       var mesh = meshes[s.mesh]
-      mesh.publishService(s)
+      mesh.publishService(s.protocol, s.name, s.host, s.port)
     }
   )
 
@@ -39,7 +39,7 @@ function init() {
       var listen = p.listen
       var target = p.target
       var mesh = meshes[p.mesh]
-      mesh.openPort(listen.ip, listen.port, p.protocol, target.service, target.endpoint)
+      mesh.openPort(listen.ip, p.protocol, listen.port, target.service, target.endpoint)
     }
   )
 }
@@ -76,7 +76,7 @@ function setMesh(name, mesh) {
     delete meshes[name]
   }
   mesh = db.getMesh(name)
-  meshes[name] = Mesh(mesh.agent, mesh.bootstraps)
+  meshes[name] = Mesh(name, mesh.agent, mesh.bootstraps)
   return getMesh(name)
 }
 
@@ -151,29 +151,29 @@ function allServices(mesh, ep) {
 
 function getService(mesh, ep, proto, name) {
   return allServices(mesh, ep).then(
-    list => list.find(svc => svc.name === name && svc.protocol === proto)
+    list => list.find(s => s.name === name && s.protocol === proto) || null
   )
 }
 
 function setService(mesh, ep, proto, name, service) {
   var m = findMesh(mesh)
-  if (ep && ep !== m.agent.id) {
-    return m.remotePublishService(ep, proto, name, service)
-  } else {
-    m.publishService({ ...service, name, protocol: proto })
+  if (ep === m.agent.id) {
+    m.publishService(proto, name, service.host, service.port)
     db.setService(mesh, proto, name, service)
     return getService(mesh, ep, proto, name)
+  } else {
+    return m.remotePublishService(ep, proto, name, service.host, service.port)
   }
 }
 
 function delService(mesh, ep, proto, name) {
   var m = findMesh(mesh)
-  if (ep && ep !== m.agent.id) {
-    return m.remoteDeleteService(ep, proto, name)
-  } else {
+  if (ep === m.agent.id) {
     m.deleteService(proto, name)
     db.delService(mesh, proto, name)
     return Promise.resolve()
+  } else {
+    return m.remoteDeleteService(ep, proto, name)
   }
 }
 
@@ -190,22 +190,41 @@ function delUser(mesh, ep, svc, name) {
 }
 
 function allPorts(mesh, ep) {
-  return db.allPorts(mesh)
+  var m = findMesh(mesh)
+  if (!m) return Promise.resolve([])
+  if (ep === m.agent.id) {
+    return Promise.resolve(db.allPorts(mesh))
+  } else {
+    return m.remoteQueryPorts(ep)
+  }
 }
 
 function getPort(mesh, ep, ip, proto, port) {
-  return db.getPort(mesh, ip, proto, port)
+  return allPorts(mesh, ep).then(
+    list => list.find(p => p.listen.port === port && p.listen.ip === ip && p.protocol === proto) || null
+  )
 }
 
-function setPort(mesh, ep, ip, proto, port, obj) {
-  findMesh(mesh).openPort(ip, port, proto, obj.target.service, obj.target.endpoint)
-  db.setPort(mesh, ip, proto, port, obj)
-  return db.getPort(mesh, ip, proto, port)
+function setPort(mesh, ep, ip, proto, port, target) {
+  var m = findMesh(mesh)
+  if (ep === m.agent.id) {
+    m.openPort(ip, proto, port, target.service, target.endpoint)
+    db.setPort(mesh, ip, proto, port, { target })
+    return getPort(mesh, ep, ip, proto, port)
+  } else {
+    return m.remoteOpenPort(ep, ip, proto, port, target)
+  }
 }
 
 function delPort(mesh, ep, ip, proto, port) {
-  findMesh(mesh).closePort(ip, port, proto)
-  db.delPort(mesh, ip, proto, port)
+  var m = findMesh(mesh)
+  if (ep === m.agent.id) {
+    m.closePort(ip, proto, port)
+    db.delPort(mesh, ip, proto, port)
+    return Promise.resolve()
+  } else {
+    return m.remoteClosePort(ep, ip, proto, port)
+  }
 }
 
 export default {

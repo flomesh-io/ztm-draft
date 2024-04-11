@@ -30,8 +30,8 @@ function open(pathname, reset) {
       CREATE TABLE ports (
         mesh TEXT NOT NULL,
         ip TEXT NOT NULL,
-        protocol TEXT NOT NULL,
         port INTEGER NOT NULL,
+        protocol TEXT NOT NULL,
         endpoint TEXT,
         service TEXT NOT NULL
       )
@@ -207,8 +207,7 @@ function getPort(mesh, ip, proto, port) {
   )
 }
 
-function setPort(mesh, ip, proto, port, obj) {
-  var target = obj.target
+function setPort(mesh, ip, proto, port, { target }) {
   var old = getPort(ip, proto, port)
   if (old) {
     db.sql('UPDATE ports SET endpoint = ?, service = ? WHERE mesh = ? AND ip = ? AND protocol = ? AND port = ?')

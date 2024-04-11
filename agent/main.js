@@ -183,23 +183,27 @@ var routes = Object.entries({
 
   '/api/meshes/{mesh}/endpoints/{ep}/ports': {
     'GET': function ({ mesh, ep }) {
-      return response(200, api.allPorts(mesh, ep))
+      return api.allPorts(mesh, ep).then(
+        ret => response(200, ret)
+      )
     },
   },
 
   '/api/meshes/{mesh}/endpoints/{ep}/ports/{ip}/{proto}/{port}': {
     'GET': function ({ mesh, ep, ip, proto, port }) {
-      var obj = api.getPort(mesh, ep, ip, proto, port)
-      return obj ? response(200, obj) : response(404)
+      return api.getPort(mesh, ep, ip, proto, Number.parseInt(port)).then(
+        ret => ret ? response(200, ret) : response(404)
+      )
     },
 
     'POST': function ({ mesh, ep, ip, proto, port }, req) {
-      return response(201, api.setPort(mesh, ep, ip, proto, port, JSON.decode(req.body)))
+      return api.setPort(mesh, ep, ip, proto, Number.parseInt(port), JSON.decode(req.body).target).then(
+        ret => response(201, ret)
+      )
     },
 
     'DELETE': function ({ mesh, ep, ip, proto, port }) {
-      api.delPort(mesh, ep, ip, proto, port)
-      return response(204)
+      return api.delPort(mesh, ep, ip, proto, Number.parseInt(port)).then(response(204))
     },
   },
 

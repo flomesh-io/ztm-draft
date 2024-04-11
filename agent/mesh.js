@@ -189,7 +189,14 @@ export default function (meshName, agent, bootstraps) {
   var $selectedEp
   var $selectedHub
 
+  //
   // Agent serving requests from the hubs
+  //
+  //   Hub ----\
+  //   Hub -----)----> Agent
+  //   Hub ----/
+  //
+
   var serveHub = pipeline($=>$
     .demuxHTTP().to($=>$
       .pipe(
@@ -206,12 +213,21 @@ export default function (meshName, agent, bootstraps) {
     )
   )
 
+  //
   // Agent handling hub-forwarded requests from other agents
+  //
+  //   Remote Agent ----> Hub ----\
+  //   Remote Agent ----> Hub -----)----> Agent
+  //   Remote Agent ----> Hub ----/
+  //
+
   var serveOtherAgents = (function() {
     var routes = Object.entries({
 
       '/api/services': {
-        'GET': function () {},
+        'GET': function () {
+          return response(200, db.allServices(meshName))
+        },
       },
 
       '/api/services/{proto}/{svc}': {
@@ -220,8 +236,9 @@ export default function (meshName, agent, bootstraps) {
         },
 
         'POST': function (params, req) {
-          publishService(params.proto, params.svc)
-          db.setService(meshName, params.proto, params.svc, JSON.decode(req.body))
+          var body = JSON.decode(req.body)
+          publishService(params.proto, params.svc, body.host, body.port)
+          db.setService(meshName, params.proto, params.svc, body)
           return response(201, db.getService(meshName, params.proto, params.svc))
         },
 
@@ -233,16 +250,34 @@ export default function (meshName, agent, bootstraps) {
       },
 
       '/api/ports': {
-        'GET': function () {},
+        'GET': function () {
+          return response(200, db.allPorts(meshName))
+        },
       },
 
       '/api/ports/{ip}/{proto}/{port}': {
-        'GET': function () {},
+        'GET': function (params) {
+          var port = Number.parseInt(params.port)
+          return response(200, db.getPort(meshName, params.ip, params.proto, port))
+        },
 
-        'POST': function () {},
+        'POST': function (params, req) {
+          var port = Number.parseInt(params.port)
+          var body = JSON.decode(req.body)
+          var target = body.target
+          openPort(params.ip, params.proto, port, target.service, target.endpoint)
+          db.setPort(meshName, params.ip, params.proto, port, body)
+          return response(201, db.getPort(meshName, params.ip, params.proto, port))
+        },
 
-        'DELETE': function () {},
+        'DELETE': function (params) {
+          var port = Number.parseInt(params.port)
+          closePort(params.ip, params.proto, port)
+          db.delPort(meshName, params.ip, params.proto, port)
+          return response(204)
+        },
       },
+
     }).map(
       function ([path, methods]) {
         var match = new http.Match(path)
@@ -268,7 +303,14 @@ export default function (meshName, agent, bootstraps) {
     )
   })()
 
+  //
   // Agent proxying to local services: mesh -> local
+  //
+  //   Remote Client ----> Remote Agent ----> Hub ----\                  /----> Local Service
+  //   Remote Client ----> Remote Agent ----> Hub -----)----> Agent ----(-----> Local Service
+  //   Remote Client ----> Remote Agent ----> Hub ----/                  \----> Local Service
+  //
+
   var proxyToLocal = pipeline($=>$
     .acceptHTTPTunnel(
       function (req) {
@@ -286,31 +328,52 @@ export default function (meshName, agent, bootstraps) {
     )
   )
 
+  //
   // Agent proxying to remote services: local -> mesh
+  //
+  //   Local Client ----\                  /----> Hub ----> Remote Agent ----> Remote Service
+  //   Local Client -----)----> Agent ----(-----> Hub ----> Remote Agent ----> Remote Service
+  //   Local Client ----/                  \----> Hub ----> Remote Agent ----> Remote Service
+  //
+
   var proxyToMesh = (proto, svc, ep) => pipeline($=>$
     .onStart(() => {
       if (ep) {
+        $selectedEp = ep
         return selectHub(ep).then(hub => {
-          $selectedEp = ep
           $selectedHub = hub
+          return new Data
         })
       } else {
         return selectEndpoint(proto, svc).then(ep => {
+          if (!ep) return new Data
           $selectedEp = ep
-          return selectHub(ep)
-        }).then(hub => { $selectedHub = hub })
+          return selectHub(ep).then(hub => {
+            $selectedHub = hub
+            return new Data
+          })
+        })
       }
     })
-    .connectHTTPTunnel(() => (
-      new Message({
-        method: 'CONNECT',
-        path: `/api/endpoints/${$selectedEp}/services/${proto}/${svc}`,
-      })
-    )).to($=>$
-      .muxHTTP(() => 1, { version: 2 }).to($=>$
-        .connect(() => $selectedHub)
-      )
-    )
+    .pipe(() => $selectedHub ? 'proxy' : 'deny', {
+      'proxy': ($=>$
+        .onStart(() => console.info(`Proxy to ${svc} at endpoint ${$selectedEp} via ${$selectedHub}`))
+        .connectHTTPTunnel(() => (
+          new Message({
+            method: 'CONNECT',
+            path: `/api/endpoints/${$selectedEp}/services/${proto}/${svc}`,
+          })
+        )).to($=>$
+          .muxHTTP(() => 1, { version: 2 }).to($=>$
+            .connect(() => $selectedHub)
+          )
+        )
+      ),
+      'deny': ($=>$
+        .onStart(() => console.info($selectedEp ? `No route to endpoint ${$selectedEp}` : `No endpoint found for ${svc}`))
+        .replaceData(new StreamEnd)
+      ),
+    })
   )
 
   // Connect to all hubs
@@ -345,6 +408,13 @@ export default function (meshName, agent, bootstraps) {
     )
   }
 
+  function selectHubWithThrow(ep) {
+    return selectHub(ep).then(hub => {
+      if (!hub) throw `No hub for endpoint ${ep}`
+      return hub
+    })
+  }
+
   function discoverEndpoints() {
     return hubs[0].discoverEndpoints()
   }
@@ -353,19 +423,15 @@ export default function (meshName, agent, bootstraps) {
     return hubs[0].discoverServices(ep)
   }
 
-  function publishService(service) {
-    var protocol = service.protocol
-    var name = service.name
-    var host = service.host
-    var port = service.port
-    var old = services.find(s => s.protocol == protocol && s.name === name)
+  function publishService(protocol, name, host, port) {
+    var old = services.find(s => s.name === name && s.protocol === protocol)
     if (old) {
       old.host = host
       old.port = port
     } else {
       services.push({
-        protocol,
         name,
+        protocol,
         host,
         port,
       })
@@ -374,7 +440,7 @@ export default function (meshName, agent, bootstraps) {
   }
 
   function deleteService(protocol, name) {
-    var old = services.find(s => s.protocol == protocol && s.name === name)
+    var old = services.find(s => s.name === name && s.protocol === protocol)
     if (old) {
       services.splice(services.indexOf(old), 1)
       updateServiceList()
@@ -386,7 +452,7 @@ export default function (meshName, agent, bootstraps) {
     hubs.forEach(hub => hub.updateServiceList(list))
   }
 
-  function openPort(ip, port, protocol, service, endpoint) {
+  function openPort(ip, protocol, port, service, endpoint) {
     switch (protocol) {
       case 'tcp':
         pipy.listen(`${ip}:${port}`, proxyToMesh(protocol, service, endpoint))
@@ -395,36 +461,65 @@ export default function (meshName, agent, bootstraps) {
     }
   }
 
-  function closePort(ip, port, protocol) {
+  function closePort(ip, protocol, port) {
     pipy.listen(`${ip}:${port}`, protocol, null)
   }
 
   function remoteQueryServices(ep) {
-    return Promise.resolve([])
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'GET', `/api/forward/${ep}/services`
+      ).then(
+        res => res?.head?.status === 200 ? JSON.decode(res.body) : []
+      )
+    )
   }
 
-  function remotePublishService(ep, proto, name, service) {
-    return selectHub(ep).then(
-      function (hub) {
-        if (!hub) throw `No hub for endpoint ${ep}`
-        return new http.Agent(hub).request(
-          'POST', `/api/forward/${ep}/services/${proto}/${name}`,
-          {}, JSON.encode(service)
-        ).then(
-          res => res?.head?.status === 201 ? JSON.decode(res.body) : null
-        )
-      }
+  function remotePublishService(ep, proto, name, host, port) {
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'POST', `/api/forward/${ep}/services/${proto}/${name}`,
+        {}, JSON.encode({ host, port })
+      ).then(
+        res => res?.head?.status === 201 ? JSON.decode(res.body) : null
+      )
     )
   }
 
   function remoteDeleteService(ep, proto, name) {
-    return selectHub(ep).then(
-      function (hub) {
-        if (!hub) throw `No hub for endpoint ${ep}`
-        return new http.Agent(hub).request(
-          'DELETE', `/api/forward/${ep}/services/${proto}/${name}`
-        )
-      }
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'DELETE', `/api/forward/${ep}/services/${proto}/${name}`
+      )
+    )
+  }
+
+  function remoteQueryPorts(ep) {
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'GET', `/api/forward/${ep}/ports`
+      ).then(
+        res => res?.head?.status === 200 ? JSON.decode(res.body) : []
+      )
+    )
+  }
+
+  function remoteOpenPort(ep, ip, proto, port, target) {
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'POST', `/api/forward/${ep}/ports/${ip}/${proto}/${port}`,
+        {}, JSON.encode({ target })
+      ).then(
+        res => res?.head?.status === 201 ? JSON.decode(res.body) : null
+      )
+    )
+  }
+
+  function remoteClosePort(ep, ip, proto, port) {
+    return selectHubWithThrow(ep).then(
+      (hub) => new http.Agent(hub).request(
+        'DELETE', `/api/forward/${ep}/ports/${ip}/${proto}/${port}`
+      )
     )
   }
 
@@ -448,9 +543,9 @@ export default function (meshName, agent, bootstraps) {
     remoteQueryServices,
     remotePublishService,
     remoteDeleteService,
-    // remoteQueryPorts,
-    // remoteOpenPort,
-    // remoteClosePort,
+    remoteQueryPorts,
+    remoteOpenPort,
+    remoteClosePort,
     status,
     leave,
   }
