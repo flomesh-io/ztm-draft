@@ -62,22 +62,45 @@ const expand = (node) => {
 	if (!node.children) {
 		node.loading = true;
 		node.children = [];
+		/*
+		 * get services
+		 */
 		pipyProxyService.getServices({
 			mesh:selectedMesh.value?.name,
 			ep:node?.id
 		})
 			.then(res => {
-				node.children = res;
-				node.children.forEach((service,sid)=>{
-					service.key = node.key + '-' + sid,
+				const _children = res;
+				_children.forEach((service,sid)=>{
+					service.key = node.key + '-s-' + sid,
 					service.label = service.name;
 					service.type = "service";
+					node.children.push(service);
 				});
 				node.loading = false;
 			})
 			.catch(err => console.log('Request Failed', err)); 
+
+		/*
+		 * get ports
+		 */
+		pipyProxyService.getPorts({
+			mesh:selectedMesh.value?.name,
+			ep:node?.id
+		})
+			.then(res => {
+				const _children = res;
+				_children.forEach((port,pid)=>{
+					port.key = node.key + '-p-' + pid,
+					port.label = `${port.listen?.ip}:${port.listen?.port}`;
+					port.type = "port";
+					node.children.push(port);
+				});
+			})
+			.catch(err => console.log('Request Failed', err)); 
 	}
 };
+
 
 </script>
 
@@ -121,6 +144,11 @@ const expand = (node) => {
 							<b v-else-if="slotProps.node.type == 'service'">
 								<Avatar icon="pi pi-server" class="mr-2" />Service: {{ slotProps.node.label }}
 								<span v-if="!!slotProps.node.port" class="font-normal text-gray-500 ml-1">| {{slotProps.node.host}}:{{slotProps.node.port}}</span>
+								<span class="ml-2"><Tag class="relative" style="top:-2px">{{slotProps.node.protocol}}</Tag></span>
+							</b>
+							<b v-else-if="slotProps.node.type == 'port'">
+								<Avatar icon="pi pi-bullseye" class="mr-2" />Port: {{ slotProps.node.label }}
+								<span v-if="!!slotProps.node.target" class="font-normal text-gray-500 ml-1">| {{slotProps.node.target.service}}</span>
 								<span class="ml-2"><Tag class="relative" style="top:-2px">{{slotProps.node.protocol}}</Tag></span>
 							</b>
 					</template>

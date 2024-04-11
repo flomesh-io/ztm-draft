@@ -21,6 +21,10 @@ const props = defineProps({
 			type: Object,
 			default: () => {}
     },
+    endpoints: {
+			type: Array,
+			default: () => []
+    },
     service: {
 			type: String,
 			default: ''
@@ -150,6 +154,25 @@ const home = ref({
 										</span>
 								    <span class="ml-2 font-medium">
 											{{targetEndpoint?.name || targetEndpoint?.id}}
+										</span>
+								</Chip>
+							</div>
+					</li>
+					<li v-else class="flex align-items-center py-3 px-2  border-bottom-1 surface-border flex-wrap">
+							<div class="text-500 w-6 md:w-2 font-medium">Endpoint</div>
+							<div class="text-900 w-full md:w-8 md:flex-order-0 flex-order-1">
+								<Chip class="pl-0 pr-3 mr-2">
+										<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+											<i class="pi pi-chart-scatter"/>
+										</span>
+										<span class="font-medium">
+											<Dropdown
+													v-model="config.target.endpoint" 
+													:options="endpoints" 
+													optionLabel="name" 
+													optionValue="id"
+													placeholder="Endpoint" 
+													class="flex"></Dropdown>
 										</span>
 								</Chip>
 							</div>

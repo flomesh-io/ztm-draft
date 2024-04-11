@@ -13,6 +13,7 @@ const router = useRouter();
 const pipyProxyService = new PipyProxyService();
 const services = ref([]);
 const endpointMap = ref({});
+const endpoints = ref([]);
 const status = ref({});
 const scopeType = ref('All');
 const portMap = ref({});
@@ -70,6 +71,7 @@ const deleteService = (service) => {
 const getEndpoints = () => {
 	pipyProxyService.getEndpoints(selectedMesh.value?.name,)
 		.then(res => {
+			endpoints.value = res;
 			res.forEach((ep) => {
 				endpointMap.value[ep.id] = ep;
 			})
@@ -290,6 +292,7 @@ const savePort = () => {
 			@save="savePort" 
 			:mesh="selectedMesh?.name" 
 			:endpoint="selectedMesh?.agent?.id" 
+			:endpoints="endpoints"
 			:service="selectedService?.service?.name" 
 			:servicePort="selectedService?.service?.port"
 			:targetEndpoint="selectedService?.ep"/>

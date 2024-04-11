@@ -168,7 +168,7 @@ const active = ref(0);
 											</div>
 											<div class="mb-2" v-if="port.target?.endpoint">
 												<Chip class="pl-0 pr-3 mr-2">
-														<span class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
+														<span style="min-width: 28px;" class="bg-primary border-circle w-2rem h-2rem flex align-items-center justify-content-center">
 															<i class="pi pi-chart-scatter"/>
 														</span>
 														<span class="font-medium ml-2">

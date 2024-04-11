@@ -9,7 +9,7 @@ const menu = [
 			label: 'Endpoints', icon: 'pi pi-fw pi-chart-scatter', route: '/mesh/endpoints'
 	},
 	{
-			label: 'Ports', icon: 'pi pi-fw pi-bullseye', route: '/mesh/ports'
+			label: 'Local Ports', icon: 'pi pi-fw pi-bullseye', route: '/mesh/ports'
 	},
 ]
 
