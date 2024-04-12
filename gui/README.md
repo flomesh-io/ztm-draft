@@ -16,7 +16,7 @@ or
 yarn install
 ```
 
-### Download pipy (plaform=windows|linux|macos-x86|macos-arm)
+### Download pipy (plaform=windows|linux|macos-x86|macos)
 ```sh
 yarn download-pipy-{plaform}
 ```
