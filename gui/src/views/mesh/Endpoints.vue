@@ -5,6 +5,7 @@ import PipyProxyService from '@/service/PipyProxyService';
 import MeshSelector from './common/MeshSelector.vue'
 import store from "@/store";
 import { useConfirm } from "primevue/useconfirm";
+import freeSvg from "@/assets/img/free.svg";
 
 const router = useRouter();
 const pipyProxyService = new PipyProxyService();
@@ -153,7 +154,7 @@ const expand = (node) => {
 							</b>
 					</template>
 				</Tree>
-				<img v-else src="/demo/images/landing/free.svg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
+				<img v-else :src="freeSvg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
 			</div>
 		</TabPanel>
 	</TabView>

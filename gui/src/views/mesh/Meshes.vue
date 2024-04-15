@@ -5,6 +5,7 @@ import PipyProxyService from '@/service/PipyProxyService';
 import MeshJoin from './MeshJoin.vue';
 import { useConfirm } from "primevue/useconfirm";
 import store from "@/store";
+import freeSvg from "@/assets/img/free.svg";
 const router = useRouter();
 const confirm = useConfirm();
 const pipyProxyService = new PipyProxyService();
@@ -111,7 +112,7 @@ const join = () => {
 	               </div>
 	           </div>
 					</div>
-					<img v-else src="/demo/images/landing/free.svg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
+					<img v-else :src="freeSvg" class="w-5 h-5 mx-aut" style="margin: auto;"  />
 				</div>
 			</TabPanel>
 	    <TabPanel >

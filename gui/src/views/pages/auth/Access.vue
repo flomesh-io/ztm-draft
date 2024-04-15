@@ -1,5 +1,6 @@
 <script setup>
 import AppConfig from '@/layout/AppConfig.vue';
+import freeSvg from "@/assets/img/asset-access.svg";
 </script>
 
 <template>
@@ -13,7 +14,7 @@ import AppConfig from '@/layout/AppConfig.vue';
                         </div>
                         <h1 class="text-900 font-bold text-4xl lg:text-5xl mb-2">Access Denied</h1>
                         <span class="text-600 mb-5">You do not have the necessary permisions. Please contact admins.</span>
-                        <img src="/demo/images/access/asset-access.svg" alt="Access denied" class="mb-5" width="80%" />
+                        <img :src="freeSvg" alt="Access denied" class="mb-5" width="80%" />
                         <div class="col-12 mt-5 text-center">
                             <i class="pi pi-fw pi-arrow-left text-blue-500 mr-2" style="vertical-align: center"></i>
                             <router-link to="/" class="text-blue-500">Go to Dashboard</router-link>

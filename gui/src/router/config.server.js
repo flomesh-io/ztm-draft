@@ -23,11 +23,6 @@ const options = {
 			component: () => import('@/views/pages/auth/Access.vue')
     },
 		{
-		    path: '/landing',
-		    name: 'landing',
-		    component: () => import('@/views/pages/Landing.vue')
-		},
-		{
 		    path: '/error',
 		    name: 'error',
 		    component: () => import('@/views/pages/auth/Error.vue')
@@ -41,14 +36,8 @@ const options = {
         path: '/',
         component: AppLayout,
 				redirect: "/root",
-        children: process.env.NODE_ENV === "development"?[
-					mesh,
-					server,
-					uikit,
-					pages,
-        ]:[
-					mesh,
-					server,
+        children: [
+					mesh
 				]
     },
   ],

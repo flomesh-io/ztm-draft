@@ -6,6 +6,7 @@ const pipyProxyService = new PipyProxyService();
 import { useRoute } from 'vue-router'
 import store from "@/store";
 import { mkConfig, generateCsv, download } from "export-to-csv";
+import freeSvg from "@/assets/img/free.svg";
 const route = useRoute();
 
 const cmdType = ref('download');
@@ -441,7 +442,7 @@ const watchEnter = (e) => {
 				</template>
 			</card>
 			<div v-else class="text-center">
-				<img src="/demo/images/landing/free.svg" class="w-5 h-5 mx-aut" style="margin: auto;" alt="free" />
+				<img :src="freeSvg" class="w-5 h-5 mx-aut" style="margin: auto;" alt="free" />
 			</div>
 		</div>
 		<div class="col-12 md:col-3">
