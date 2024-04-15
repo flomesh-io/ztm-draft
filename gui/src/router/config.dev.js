@@ -1,7 +1,8 @@
 import _ from "lodash";
-import server from "./modules/server";
-import pages from "./modules/pages";
-import uikit from "./modules/uikit";
+// import client from "./modules/client";
+// import server from "./modules/server";
+// import pages from "./modules/pages";
+// import uikit from "./modules/uikit";
 import mesh from "./modules/mesh";
 import AppLayout from '@/layout/AppLayout.vue';
 
@@ -27,6 +28,12 @@ const options = {
 		    name: 'error',
 		    component: () => import('@/views/pages/auth/Error.vue')
 		},
+		
+		// {
+		//   path: "/landing",
+		//   name: "landing",
+		// 	component: () => import('@/views/pages/Landing.vue')
+		// },
 		{
 		    path: '/root',
 		    name: 'Root',
@@ -37,7 +44,11 @@ const options = {
         component: AppLayout,
 				redirect: "/root",
         children: [
-					mesh
+					mesh,
+					// client,
+					// server,
+					// pages,
+					// uikit
 				]
     },
   ],

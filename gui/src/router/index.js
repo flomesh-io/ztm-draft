@@ -1,7 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { isAdmin } from "@/service/common/authority-utils";
-import clientOptions from '@/router/config';
-import serverOptions from '@/router/config.server';
+import prodOptions from '@/router/config';
+import devOptions from '@/router/config.dev';
+
 const loginIgnore = {
   names: ["404", "403", "Login", "Root"],
   paths: ["/login","/root"],
@@ -11,7 +12,7 @@ const loginIgnore = {
 };
 
 function resetRoutes(router, store) {
-	const options = isAdmin() ? serverOptions : clientOptions;
+	const options = import.meta.env.DEV ? devOptions : prodOptions;
 	if(!!router){
 		const oldRoutes = router.getRoutes();
 		oldRoutes.forEach((oldRoute) => {

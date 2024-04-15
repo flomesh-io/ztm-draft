@@ -1,8 +1,5 @@
 import _ from "lodash";
-import client from "./modules/client";
 import mesh from "./modules/mesh";
-import pages from "./modules/pages";
-import uikit from "./modules/uikit";
 import AppLayout from '@/layout/AppLayout.vue';
 
 const options = {
