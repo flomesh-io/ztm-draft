@@ -1,40 +1,24 @@
-ZTM is a ***decentralized***, ***open source*** network infrastructure software based on ***HTTP2 tunnels*** that can run on ***any existing IP network***, 
-including but not limited to LANs, the Internet, container networks, etc. 
+ZTM is an open source network infrastructure software for running a ***decentralized*** network, which is built upon ***HTTP/2 tunnels*** and can run on ***any sort of IP networks*** such as LANs, containerized networks and the Internet, etc.
 
-ZTM provides the necessary network infrastructure for building and using ***decentralized applications***, including **network connectivity**, **port-based access control**, 
-**mTLS encrypted network channels**, **certificate-based authentication and access control**, **load balancing**, and other basic network and security capabilities. 
+ZTM lays the foundation for building ***decentralized applications*** by providing a set of core features including:
 
-Based on ZTM, it is possible to build a variety of secure network solutions applicable to ***individual users***, ***small and medium-sized groups***, 
-and ***enterprise organizations***, such as:
+* Network connectivity across Internet gateways and firewalls
+* TLS-encrypted communication channels
+* Certificate-based authentication and access control
+* Service discovery and load balancing
 
-* Intranet penetration tools for individual users, allowing users to access files on their home computers in the office network
-* Build content sharing network similar to ipfs (https://ipfs.tech/) to share web pages, videos, pictures, etc. among friends without relying on social networking platforms controlled by Internet giants, ensuring the privacy of content within the group while safeguarding the ownership of the work.
-* Build private chat, voice, and video conferencing tools to avoid the risk of privacy leakage associated with the use of SaaS-type tools (e.g., Webex), and provide more proactive and manageable privacy protection capabilities.
-* Build a SASE similar to cloudflare-one but privatized, providing cloudflare tunnel and cloudflare access capabilities, and the deployment of the solution is private and does not rely on the cloud flare network and operations.
-* Build a networking solution similar to zerotier (https://www.zerotier.com/) and tailscale (https://tailscale.com/).
-  The difference is that ZTM runs on Layer 7 network and does not require building virtual NICs, adjusting routes, configuring firewall policies, etc. ,
-  so it requires no system privileges, is non-intrusive, simple and more secure. At the same time, ZTM only provides the technical components and solutions needed to build a similar network; the ZTM team does not physically own, control, or operate the network.
+ZTM can be used in various settings ranging from a ***2-node personal network connecting one's home and workplace*** to a ***10,000-node enterprise network connecting offices and branches across the globe***. Examples of applications that can leverage ZTM are:
 
-## Features
+* Remote access your home computer from anywhere in the world
+* Share documents, pictures and videos with a group of people without the need of a big-tech social networking platform
+* Private and secure P2P chat or voice/video conferencing without the fear of eavesdropping
 
-* **Programmable**. ZTM builds the data plane and control plane based on Pipy (https://github.com/flomesh-io/pipy),
-  using PipyJS (https://github.com/flomesh-io/pipy?tab=readme-ov- file#programmable) developed and distributed using Apache2 License.
-  Pipy's programmable features enable ZTM to become a programmable network. Based on PipyJS, users can quickly customize
-  functions and capabilities such as access control policies, content caching policies, and security threat identification.
-  **Programmability** and **extensibility** are important features of ZMT.
-* **High performance**. The ZTM data plane uses the high-performance network proxy Pipy and adopts HTTP2-based network connections,
-  taking full advantage of the multiplexing capabilities of HTTP2. In most cases, compared to traditional network solutions
-  (such as firewall + reverse proxy + WAF), ZTM can effectively reduce the performance overhead caused by the need to cross
-  multiple network boundaries. ZTM brings faster network experience to users.
-* **Security-oriented**. On ZTM, access to any device and service is based on certificates, and the use of client certificates strengthens visitor identity.
-  This is one of the reasons we call it Zero Trust. In addition to the natural client identity, ZTM provides the necessary basic capabilities and
-  programming interfaces for various network security management capabilities. Based on ZTM, you can quickly build ZTNA (Zero Trust Network Access),
-  SWG (Secure Web Gateway), RBI (Remote Browser Isolation), CASB (Cloud Access Security Broker), DLP (Data Loss Prevention), WAF (Web Application Firewall)
-  and other network security solutions. While ensuring that individuals and small and medium-sized users can use the secure ZTM network out of the box,
-  enterprise-level users can quickly customize complex enterprise-level network security strategies. These policies are based on Pipy's built-in
-  modules and are developed using PipyJS, which can quickly implement scripted customized security policies.
-* **Multi-network ready**. In the ZTM network environment, any access device (called End Point) can access multiple ZTM networks. For example, the mac-air I am currently using is connected to a private office network and is also connected to a network where college classmates share photos. ZTM builds a network environment similar to a "slack channel" user experience, and each individual (End Point) can exist on multiple network planes at the same time. This three-dimensional network form in which one device is connected to multiple networks at the same time is why we call it Mesh. When we only connect to one network plane, ZTM looks like a ZeroTier network; in other words, ZTM users can quickly build and use multiple "ZeroTier-like" networks. Compared with Layer 2-based decentralized network solutions such as ZeroTier or TailScale (based on wireguard), ZTM does not need to build a virtual network card on the device, adjust the routing policy of the device, or set the firewall policy of the device. Therefore, ZTM Supporting multiple network planes is simpler and more feasible (most Layer 2 VPN software cannot run on one host at the same time). Think about the situation when using a VPN and being unable to access the Internet after connecting to the VPN; these problems do not exist on ZTM. ZTM does not require building a local virtual network card, does not require IP configuration, and therefore does not require IP routing. ZTM's routing capabilities support both Layer 4 and Layer 7. ZTM can implement routing capabilities based on "IP+port" according to the set policy, and can be used with Flomesh FGW (https://github.com/flomesh-io/fgw) Route specific protocols (such as HTTP) based on Layer 7 message characteristics (such as HTTP Host and HTTP Path).
-* **Firewall friendly**. On the ZTM network, any service (such as a privately deployed Zimbra Web Mail) is mapped to a visitor's local port, and users naturally implement port-based access control when accessing services. On the one hand, this mechanism avoids the highly dynamic and complex firewall policy management brought about by complex network environments, and on the other hand, it effectively reduces the exposure surface.
-* **Compatible with existing networks and applications**, and current networks and applications can use ZTM with zero modification. When users need to build a ZTM network, users do not need to make additional settings on the existing network, such as opening ports, configuring firewall policies, configuring routing rules, etc. Users need to deploy the ZTM agent on the host of the application access side (client side) and the application server side (server side) or in the network. ZTM will build a "tunnel" between the two Agents. The tunnel is an encrypted, Virtual network link. The zero-modification feature allows users to quickly connect existing services (such as ERP, OA, WebMail) to ZTM to achieve simpler management and higher security policies.
-* **Decentralized**. One of the original design intentions of ZTM is that users can share their content, such as photos, articles, etc., directly on their mobile phones and home computers without relying on the services of Internet giants (Google, Facebook, etc.). It enables users to own their own content with low cost and high reliability. On the ZTM network, the service visitor (Client) and the service provider (Server) are connected through a tunnel. The establishment of the tunnel sometimes requires a third-party relay, but the relay node does not own the service. The relay node can only see the encrypted TCP connection, but cannot know and interfere with the content transmitted therein.
-* **Compatible with almost all kinds of CPUs and operating systems**, including CPUs such as X86, ARM, and RISC-V, and operating systems such as Linux (including Android), MACOS, FreeBSD, and Windows. In the simplest case, users can run ZTM Agent on their phones to quickly and securely share photos on their phones with friends without going through third-party photo sharing services (such as Google Photos). In complex enterprise network environments, such as kubernetes container networks, users can also run ZTM Agent on kubernetes nodes, making it convenient, fast and secure to access services in the kubernetes cluster from outside the container network. For users who are familiar with kubernetes, ZTM provides a new option in addition to ELB, NodePort, and Ingress for external open services of the kubernetes network - tunnel.
+ZTM is written in ***PipyJS***, a JavaScript dialect designed for [***Pipy***](https://github.com/flomesh-io/pipy) (https://github.com/flomesh-io/pipy). ***Pipy*** is an open source programmable proxy software. Thanks to ***Pipy***, ZTM has many unique features:
+
+* **Fast**. HTTP/2 multiplexing is fast, and ***Pipy*** is fast. Like, C++ fast.
+
+* **Secure**. All traffic is encrypted by TLS and has identities via certificates. By using ***PipyJS***, security policy can be easily customized to meet the requirements in your organization.
+
+* **Highly customizable and programmable**, since ***Pipy*** in itself is a general-purpose network scripting engine.
+
+* **Portable**. Choose your CPU architecture: X86, ARM, MIPS, RISC-V, LoongArch... Choose your operating system: Linux, Windows, macOS, FreeBSD, Android... ZTM runs anywhere.
