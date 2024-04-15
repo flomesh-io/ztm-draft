@@ -6,11 +6,14 @@ import { viteMockServe } from 'vite-plugin-mock';
 // import optimizer from 'vite-plugin-optimizer'
 import { internalIpV4 } from "internal-ip";
 const mobile = !!/android|ios/.exec(process.env.TAURI_ENV_PLATFORM);
-// import vitePluginRequire from "vite-plugin-require";
+// import requirePlugin from "vite-plugin-require";
 // https://vitejs.dev/config/
 //target: process.env.TAURI_PLATFORM == "windows" ? "chrome105" : "safari13",
 export default defineConfig(async (config) => ({
 			clearScreen: false,
+			optimizeDeps: {
+				dynamicImportVars: true,
+			},
 			server: {
 				port: 1420,
 				strictPort: true,
