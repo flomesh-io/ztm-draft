@@ -1,6 +1,8 @@
 ZTM is an open source network infrastructure software for running a ***decentralized*** network, which is built upon ***HTTP/2 tunnels*** and can run on ***any sort of IP networks*** such as LANs, containerized networks and the Internet, etc.
 
-ZTM lays the foundation for building ***decentralized applications*** by providing a set of core features including:
+# Why ZTM?
+
+ZTM lays the foundation for building ***decentralized applications*** by providing a set of core functionalities including:
 
 * Network connectivity across Internet gateways and firewalls
 * TLS-encrypted communication channels
@@ -12,6 +14,8 @@ ZTM can be used in various settings ranging from a ***2-node personal network co
 * Remote access your home computer from anywhere in the world
 * Share documents, pictures and videos with a group of people without the need of a big-tech social networking platform
 * Private and secure P2P chat or voice/video conferencing without the fear of eavesdropping
+
+# Features
 
 ZTM is written in ***PipyJS***, a JavaScript dialect designed for [***Pipy***](https://github.com/flomesh-io/pipy) (https://github.com/flomesh-io/pipy). ***Pipy*** is an open source programmable proxy software. Thanks to ***Pipy***, ZTM has many unique features:
 
